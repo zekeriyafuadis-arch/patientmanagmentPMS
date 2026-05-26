@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Healthcare Patient Management System - Complete medical record management solution">
+    <meta name="theme-color" content="#667eea">
+    <title>SAYDOC Patient Management System | Healthcare HMS</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Main Stylesheet -->
+   <link rel="stylesheet" href="src/PatientStyle/root.css">
+    <link rel="stylesheet" href="src/PatientStyle/dashboard.css">
+    <link rel="stylesheet" href="src/PatientStyle/patients.css">
+    <link rel="stylesheet" href="src/PatientStyle/patientRegister.css">
+    <link rel="stylesheet" href="src/PatientStyle/patientSearch.css">
+    <link rel="stylesheet" href="src/PatientStyle/patientDetail.css">
+    <link rel="stylesheet" href="src/PatientStyle/patientEdit.css">
+
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Bar with Controls -->
+        <div class="top-bar" id="topBar">
+            <div class="top-bar-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="app-title">
+                    <i class="fas fa-hospital-user"></i>
+                    <span>SAYDOC PMS</span>
+                </div>
+            </div>
+            <div class="top-bar-right">
+                <!-- Theme Toggle -->
+                <button class="top-bar-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                
+                <!-- Fullscreen Toggle -->
+                <button class="top-bar-btn" id="fullscreenToggleBtn" title="Toggle Fullscreen (F11)">
+                    <i class="fas fa-expand"></i>
+                </button>
+                
+                <!-- Settings -->
+                <button class="top-bar-btn" id="settingsBtn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+                
+                <!-- User Info -->
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Admin</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="logo">
+                <h2>
+                    <i class="fas fa-hospital-user"></i> 
+                   SAYDOC PatientMS
+                </h2>
+                <p>Healthcare Management System</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li data-page="dashboard" class="active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li data-page="patients">
+                    <i class="fas fa-users"></i>
+                    <span>All Patients</span>
+                </li>
+                <li data-page="register">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register Patient</span>
+                </li>
+                <li data-page="search">
+                    <i class="fas fa-search"></i>
+                    <span>Advanced Search</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="version">
+                    <i class="fas fa-code-branch"></i>
+                    <span>Version 2.0.0</span>
+                </div>
+                <div class="copyright">
+                    <small>© 2025 Healthcare HMS</small>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div id="content-area">
+                <!-- Dynamic content will be loaded here -->
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading Patient Management System...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay" style="display: none;">
+        <div class="settings-modal">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </h3>
+                <button class="modal-close" id="closeSettingsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>Appearance</h4>
+                    <div class="setting-item">
+                        <label>Theme Mode</label>
+                        <div class="theme-selector">
+                            <button class="theme-option" data-theme="light">
+                                <i class="fas fa-sun"></i>
+                                Light
+                            </button>
+                            <button class="theme-option" data-theme="dark">
+                                <i class="fas fa-moon"></i>
+                                Dark
+                            </button>
+                            <button class="theme-option" data-theme="auto">
+                                <i class="fas fa-adjust"></i>
+                                Auto
+                            </button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="autoFullscreenSetting">
+                            Auto Fullscreen on Startup
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="rememberWindowState">
+                            Remember Window State
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h4>Display</h4>
+                    <div class="setting-item">
+                        <label>Default View</label>
+                        <select id="defaultView">
+                            <option value="dashboard">Dashboard</option>
+                            <option value="patients">All Patients</option>
+                            <option value="register">Register Patient</option>
+                            <option value="search">Advanced Search</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="showAnimations">
+                            Enable Animations
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="compactMode">
+                            Compact Mode (Smaller UI)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h4>Data & Backup</h4>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="autoBackup">
+                            Auto Backup Database (Daily)
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <button class="btn-secondary" id="exportDataBtn">
+                            <i class="fas fa-download"></i> Export All Data
+                        </button>
+                        <button class="btn-danger" id="clearCacheBtn">
+                            <i class="fas fa-trash"></i> Clear Cache
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="saveSettingsBtn">Save Settings</button>
+                <button class="btn-secondary" id="cancelSettingsBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
+    <!-- Main Application Script -->
+    <script src="src/app.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+Thumbs.db
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.zip
+electron/assets/icon.*
+!electron/assets/.gitkeep
