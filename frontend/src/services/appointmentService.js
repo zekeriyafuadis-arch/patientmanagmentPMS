@@ -14,7 +14,10 @@ export const APPOINTMENT_STATUSES = [
   { value: 'pending_doctor', label: 'Awaiting Doctor', color: '#ed8936' },
   { value: 'scheduled', label: 'Scheduled', color: '#4299e1' },
   { value: 'confirmed', label: 'Confirmed', color: '#48bb78' },
+  { value: 'arrived', label: 'Arrived / Waiting', color: '#38b2ac' },
   { value: 'in_chair', label: 'In Chair', color: '#ed8936' },
+  { value: 'with_doctor', label: 'With Doctor', color: '#805ad5' },
+  { value: 'checkout', label: 'Checkout', color: '#d69e2e' },
   { value: 'completed', label: 'Completed', color: '#718096' },
   { value: 'no_show', label: 'No Show', color: '#f56565' },
   { value: 'cancelled', label: 'Cancelled', color: '#a0aec0' }
@@ -111,5 +114,28 @@ export const appointmentService = {
   async declineAssignment(appointmentId) {
     const res = await apiPost(`/appointments/${appointmentId}/decline`, {});
     return res;
+  },
+
+  async getCheckInQueue(date) {
+    const d = date instanceof Date ? date.toISOString().slice(0, 10) : (date || new Date().toISOString().slice(0, 10));
+    const res = await apiGet(`/appointments/check-in-queue?date=${d}`);
+    return res.data;
+  },
+
+  async createFromTreatmentItem(payload) {
+    const res = await apiPost('/appointments/from-treatment-item', payload);
+    return res.data;
+  },
+
+  getNextCheckInStatus(current) {
+    const flow = {
+      scheduled: 'arrived',
+      confirmed: 'arrived',
+      arrived: 'in_chair',
+      in_chair: 'with_doctor',
+      with_doctor: 'checkout',
+      checkout: 'completed'
+    };
+    return flow[current] || null;
   }
 };

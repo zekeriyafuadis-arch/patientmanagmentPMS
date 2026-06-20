@@ -298,6 +298,6 @@ body.dark-mode .medical-alert-banner {
 }
 
 @media (max-width: 768px) {
-  .top-bar-center { display: none; }
+  .top-bar-center { display: flex; max-width: none; flex: 1; }
   .hide-mobile { display: none; }
 }

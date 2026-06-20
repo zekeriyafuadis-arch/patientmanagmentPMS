@@ -349,7 +349,7 @@ class BillingService {
       throw err;
     }
 
-    await BillingRepository.insertPayment([
+    const payResult = await BillingRepository.insertPayment([
       invoiceId, invoice.patient_id, invoice.invoice_number, payAmount, method || 'cash',
       reference || '', notes || '', user.id, user.fullName
     ]);
@@ -367,7 +367,7 @@ class BillingService {
       req
     });
     publishChange('billing', 'payment', { invoiceId, patientId: invoice.patient_id }, user?.id);
-    return { amountPaid: newPaid, balance, status };
+    return { id: String(payResult.lastID), amountPaid: newPaid, balance, status };
   }
 
   static async getOutstanding() {
@@ -405,6 +405,47 @@ class BillingService {
       .reduce((s, i) => s + (parseFloat(i.balance) || 0), 0);
 
     return { today, month, allTime, outstanding, paymentCount: payments.length };
+  }
+
+  static async getEodCashReport(dateStr) {
+    const date = (dateStr || new Date().toISOString()).slice(0, 10);
+    const start = `${date}T00:00:00.000Z`;
+    const end = `${date}T23:59:59.999Z`;
+    const payments = await BillingRepository.findPaymentsInRange(start, end);
+    const byMethod = {};
+    let grandTotal = 0;
+    payments.forEach((p) => {
+      const method = (p.method || 'cash').toLowerCase();
+      if (!byMethod[method]) byMethod[method] = { count: 0, total: 0 };
+      byMethod[method].count += 1;
+      byMethod[method].total += parseFloat(p.amount) || 0;
+      grandTotal += parseFloat(p.amount) || 0;
+    });
+    return {
+      date,
+      totalCount: payments.length,
+      grandTotal,
+      byMethod,
+      payments: payments.map((p) => ({
+        id: String(p.id),
+        amount: p.amount,
+        method: p.method,
+        created_at: p.created_at,
+        patient_name: p.patient_name,
+        invoice_number: p.invoice_number
+      }))
+    };
+  }
+
+  static async getPaymentWithInvoice(paymentId) {
+    const payment = await BillingRepository.findPaymentById(paymentId);
+    if (!payment) {
+      const err = new Error('Payment not found');
+      err.statusCode = 404;
+      throw err;
+    }
+    const invoice = await BillingRepository.findInvoiceById(payment.invoice_id);
+    return { payment: BillingRepository.mapPayment(payment), invoice: invoice ? BillingRepository.mapInvoice(invoice) : null };
   }
 }
 

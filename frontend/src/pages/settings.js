@@ -3,6 +3,7 @@ import { procedureService } from '../services/procedureService.js';
 import { adminService } from '../services/adminService.js';
 import { getCurrentRole, getCurrentUser, changePassword } from '../services/authService.js';
 import { loadClinicEmailConfig, buildStaffEmail } from '../config/clinicEmail.js';
+import { API_BASE } from '../config/api.js';
 
 export class Settings {
   constructor() {
@@ -15,6 +16,10 @@ export class Settings {
     const isAdmin = getCurrentRole() === 'admin';
     const config = await loadClinicEmailConfig();
     this.emailDomain = config.emailDomain;
+    this.passwordMinLength = config.passwordPolicy?.minLength || 6;
+    const passwordHint = config.passwordPolicy?.requireLetterAndNumber
+      ? `Min ${this.passwordMinLength} characters, with letters and numbers`
+      : `Min ${this.passwordMinLength} characters`;
     return `
       <div class="settings-page-container">
         <div class="settings-page-header">
@@ -23,6 +28,21 @@ export class Settings {
         </div>
 
         <div class="settings-cards">
+          <div class="settings-card">
+            <div class="settings-card-header">
+              <h2><i class="fas fa-mobile-alt"></i> Mobile & Install</h2>
+            </div>
+            <p class="settings-hint">On the same Wi‑Fi as this computer, open the clinic app in a phone or tablet browser. You can also install it to your home screen. Keep access limited to your clinic network only.</p>
+            <div id="mobileAccessPanel" class="mobile-access-panel">
+              <div class="loading-state"><div class="loading-spinner"></div><p>Loading access URLs…</p></div>
+            </div>
+            <div class="settings-install-actions">
+              <button type="button" class="btn-primary btn-sm hidden" id="pwaInstallBtn">
+                <i class="fas fa-download"></i> Install App
+              </button>
+            </div>
+          </div>
+
           <div class="settings-card">
             <div class="settings-card-header">
               <h2><i class="fas fa-key"></i> Change Password</h2>
@@ -35,7 +55,7 @@ export class Settings {
                 </div>
                 <div class="form-field">
                   <label for="newPassword">New Password *</label>
-                  <input type="password" id="newPassword" required minlength="6" autocomplete="new-password">
+                  <input type="password" id="newPassword" required minlength="${this.passwordMinLength}" autocomplete="new-password" placeholder="${this.escapeHtml(passwordHint)}">
                 </div>
               </div>
               <div id="passwordFormError" class="login-error" style="display:none;"></div>
@@ -136,7 +156,7 @@ export class Settings {
                 </div>
                 <div class="form-field">
                   <label>Password *</label>
-                  <input type="password" id="staffPassword" required minlength="6" placeholder="Min 6 characters">
+                  <input type="password" id="staffPassword" required minlength="${this.passwordMinLength}" placeholder="${this.escapeHtml(passwordHint)}">
                 </div>
                 <div class="form-field">
                   <label>Role *</label>
@@ -220,6 +240,7 @@ export class Settings {
   async loadStaff() {
     try {
       this.bindPasswordForm();
+      await this.loadMobileAccessPanel();
       const isAdmin = getCurrentRole() === 'admin';
       if (!isAdmin) return;
 
@@ -307,10 +328,11 @@ export class Settings {
       });
       container.querySelectorAll('.staff-reset-btn').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          const newPassword = prompt('Enter a new temporary password (min 6 characters):');
+          const minLen = this.passwordMinLength || 6;
+          const newPassword = prompt(`Enter a new temporary password (min ${minLen} characters):`);
           if (!newPassword) return;
-          if (newPassword.length < 6) {
-            if (window.Toast) window.Toast.warning('Password must be at least 6 characters');
+          if (newPassword.length < minLen) {
+            if (window.Toast) window.Toast.warning(`Password must be at least ${minLen} characters`);
             return;
           }
           try {
@@ -539,6 +561,35 @@ export class Settings {
     });
   }
 
+  async loadMobileAccessPanel() {
+    const panel = document.getElementById('mobileAccessPanel');
+    if (!panel) return;
+
+    let networkUrls = [];
+    try {
+      const res = await fetch(`${API_BASE}/auth/config`);
+      const data = await res.json();
+      networkUrls = data.networkUrls || [];
+    } catch {
+      /* ignore */
+    }
+
+    const current = `${window.location.protocol}//${window.location.host}`;
+    const urls = [...new Set([current, ...networkUrls])];
+
+    panel.innerHTML = `
+      <div class="network-url-list">
+        ${urls.map((url, idx) => `
+          <div class="network-url-item">
+            <code>${this.escapeHtml(url)}</code>
+            <span class="text-muted-sm">${idx === 0 ? 'This session' : 'Same Wi‑Fi'}</span>
+          </div>
+        `).join('')}
+      </div>
+      <p class="settings-hint" style="margin-top:0.75rem">Tip: bookmark the LAN URL on staff phones. For a desktop installer, run <code>npm run build:win</code> and use the file in <code>dist/</code>.</p>
+    `;
+  }
+
   async loadAdminPanel() {
     try {
       const info = await adminService.getSystemInfo();
@@ -554,6 +605,12 @@ export class Settings {
             <div><span>Backups</span><strong>${info.backups}</strong></div>
             <div><span>DB Size</span><strong>${sizeMb} MB</strong></div>
           </div>
+          ${info.networkUrls?.length ? `
+            <div class="network-url-list" style="margin-top:1rem">
+              <strong style="display:block;margin-bottom:0.5rem;font-size:0.8125rem">Network access</strong>
+              ${info.networkUrls.map((url) => `<div class="network-url-item"><code>${this.escapeHtml(url)}</code></div>`).join('')}
+            </div>
+          ` : ''}
         `;
       }
       await this.renderAuditLog();

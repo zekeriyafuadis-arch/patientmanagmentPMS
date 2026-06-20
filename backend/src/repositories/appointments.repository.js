@@ -14,6 +14,9 @@ function mapAppt(r) {
     status: r.status,
     chair: r.chair || '',
     notes: r.notes || '',
+    treatmentPlanId: r.treatment_plan_id || '',
+    treatmentItemId: r.treatment_item_id || '',
+    checkInAt: r.check_in_at || '',
     created_at: r.created_at,
     updated_at: r.updated_at
   };
@@ -81,8 +84,15 @@ async function update(id, fields) {
   );
 }
 
-async function updateStatus(id, status) {
-  await run(`UPDATE appointments SET status=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`, [status, id]);
+async function updateStatus(id, status, extra = {}) {
+  const sets = ['status=?', 'updated_at=CURRENT_TIMESTAMP'];
+  const params = [status];
+  if (extra.checkInAt) {
+    sets.push('check_in_at=?');
+    params.push(extra.checkInAt);
+  }
+  params.push(id);
+  await run(`UPDATE appointments SET ${sets.join(', ')} WHERE id=?`, params);
 }
 
 async function markDeclined(id) {
@@ -132,12 +142,55 @@ async function updatePatientLastVisit(patientId, visitDate) {
   );
 }
 
+async function findCheckInQueue(date) {
+  const d = (date || new Date().toISOString()).slice(0, 10);
+  const activeStatuses = ['scheduled', 'confirmed', 'arrived', 'in_chair', 'with_doctor', 'checkout'];
+  const placeholders = activeStatuses.map(() => '?').join(',');
+  return all(
+    `SELECT * FROM appointments
+     WHERE datetime >= ? AND datetime < ?
+       AND status IN (${placeholders})
+     ORDER BY
+       CASE status
+         WHEN 'arrived' THEN 1
+         WHEN 'confirmed' THEN 2
+         WHEN 'scheduled' THEN 3
+         WHEN 'in_chair' THEN 4
+         WHEN 'with_doctor' THEN 5
+         WHEN 'checkout' THEN 6
+         ELSE 7
+       END,
+       COALESCE(check_in_at, datetime) ASC`,
+    [`${d}T00:00:00.000Z`, `${d}T23:59:59.999Z`, ...activeStatuses]
+  );
+}
+
+async function insertExtended(values) {
+  return run(
+    `INSERT INTO appointments (patient_id, patient_name, patient_mrn, staff_id, staff_name, datetime, duration, type, status, chair, notes, treatment_plan_id, treatment_item_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    values
+  );
+}
+
+async function ensurePrimaryDoctor(patientId, staffId, staffName) {
+  const patient = await get('SELECT primary_doctor_id FROM patients WHERE id = ?', [patientId]);
+  if (patient?.primary_doctor_id) return false;
+  await run(
+    `UPDATE patients SET primary_doctor_id=?, primary_doctor_name=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+    [staffId || '', staffName || '', patientId]
+  );
+  return true;
+}
+
 module.exports = {
   mapAppt,
   findById,
   findAll,
   findPendingConfirmations,
+  findCheckInQueue,
   insert,
+  insertExtended,
   update,
   updateStatus,
   markDeclined,

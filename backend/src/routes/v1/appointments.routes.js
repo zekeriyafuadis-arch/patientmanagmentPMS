@@ -7,6 +7,8 @@ const AppointmentsController = require('../../controllers/appointments.controlle
 const router = express.Router();
 router.use(requireAuth);
 
+router.get('/check-in-queue', AppointmentsController.getCheckInQueue);
+router.post('/from-treatment-item', requireRole('admin', 'receptionist', 'dentist'), AppointmentsController.createFromTreatmentItem);
 router.get('/available-slots', AppointmentsController.getAvailableSlots);
 router.get('/pending-confirmations', requireRole('dentist'), AppointmentsController.getPendingConfirmations);
 router.post('/assign', requireRole('admin', 'receptionist'), validate(appointmentAssignSchema), AppointmentsController.assign);

@@ -23,6 +23,7 @@ import { alertService } from './services/alertService.js';
 import { startLiveSync, stopLiveSync } from './core/liveSync.js';
 import { eventBus } from './core/eventBus.js';
 import { initPillNav, refreshPillNavIndicator } from './utils/navPill.js';
+import { registerServiceWorker, setupInstallPrompt } from './utils/pwa.js';
 
 function syncViewportHeight() {
   document.documentElement.style.setProperty('--app-vh', `${window.innerHeight}px`);
@@ -516,6 +517,11 @@ function initElectron() {
 
 async function bootstrap() {
   initElectron();
+  registerServiceWorker();
+  setupInstallPrompt();
+  document.getElementById('mobileSearchBtn')?.addEventListener('click', () => {
+    document.getElementById('globalSearchBtn')?.click();
+  });
   const authScreen = document.getElementById('auth-screen');
   setupAuthListeners();
   if (authScreen) {

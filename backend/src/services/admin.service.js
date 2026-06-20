@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
-const { all, get, dbPath, uploadsDir, closeDatabase, reopenDatabase } = require('../config/database');
+const { all, get, dbPath, uploadsDir, closeDatabase, reopenDatabase, dataRoot } = require('../config/database');
 const { logAudit } = require('../utils/audit');
+const { getLanAddresses } = require('../utils/networkUrls');
 
-const backupDir = path.join(__dirname, '../../../patientsData/backups');
+const backupDir = path.join(dataRoot, 'backups');
 const APP_VERSION = '3.0.0';
 
 function health() {
@@ -217,7 +218,10 @@ async function getSystemInfo() {
     appointments: counts[1].c,
     invoices: counts[2].c,
     auditEntries: counts[3].c,
-    backups: backupCount
+    backups: backupCount,
+    port: parseInt(process.env.PORT, 10) || 3000,
+    localUrl: `http://localhost:${process.env.PORT || 3000}`,
+    networkUrls: getLanAddresses()
   };
 }
 

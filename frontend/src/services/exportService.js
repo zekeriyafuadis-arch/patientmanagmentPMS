@@ -3,6 +3,7 @@
  */
 
 import { BRANDING } from '../config/branding.js';
+import { auditService } from './auditService.js';
 
 const CSV_COLUMNS = [
   'mrn', 'name', 'father_name', 'grandfather_name', 'gender', 'dob', 'age',
@@ -32,6 +33,7 @@ export function exportPatientsToCSV(patients, filename) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  auditService.logExport('patients_csv', 'all', `${patients.length} records`);
 }
 
 export function printPatientRecord(patient) {
@@ -78,6 +80,7 @@ export function printPatientRecord(patient) {
     </html>
   `);
   printWindow.document.close();
+  auditService.logPrint('patient_record', patient.id || patient.mrn, patient.mrn);
 }
 
 export function printReceipt(invoice, payments = []) {
@@ -164,6 +167,7 @@ export function printReceipt(invoice, payments = []) {
     </html>
   `);
   printWindow.document.close();
+  auditService.logPrint('receipt', invoice.id || invoice.invoiceNumber, invoice.invoiceNumber);
 }
 
 export function printAllPatients(patients) {

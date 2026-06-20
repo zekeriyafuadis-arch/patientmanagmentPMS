@@ -239,6 +239,92 @@ async function treatmentSummary() {
   return { activePlans: rows.length, pendingProcedures, completedProcedures };
 }
 
+async function getChartDiff(patientId) {
+  const charts = await listCharts(patientId);
+  if (charts.length < 2) {
+    return { hasPrevious: false, changes: [], summary: {}, currentVisit: charts[0]?.visitDate, previousVisit: null };
+  }
+  const { diffCharts, summarizeDiff } = require('../utils/odontogramDiff');
+  const changes = diffCharts(charts[1].chartData, charts[0].chartData);
+  return {
+    hasPrevious: true,
+    changes,
+    summary: summarizeDiff(changes),
+    currentVisit: charts[0].visitDate,
+    previousVisit: charts[1].visitDate
+  };
+}
+
+async function listPerioCharts(patientId) {
+  const rows = await all(
+    'SELECT * FROM perio_charts WHERE patient_id = ? ORDER BY visit_date DESC',
+    [patientId]
+  );
+  return rows.map((r) => ({
+    id: String(r.id),
+    patientId: String(r.patient_id),
+    chartData: JSON.parse(r.chart_data || '{}'),
+    visitDate: r.visit_date,
+    createdBy: r.created_by,
+    createdByName: r.created_by_name,
+    created_at: r.created_at
+  }));
+}
+
+async function createPerioChart({ patientId, chartData, visitDate }, user, userId) {
+  const result = await run(
+    `INSERT INTO perio_charts (patient_id, chart_data, visit_date, created_by, created_by_name) VALUES (?, ?, ?, ?, ?)`,
+    [patientId, JSON.stringify(chartData || {}), visitDate || new Date().toISOString(), user.id, user.fullName]
+  );
+  publishChange('clinical', 'created', { id: result.lastID, patientId, type: 'perio' }, userId);
+  return { id: String(result.lastID) };
+}
+
+async function listDocuments(patientId) {
+  const rows = await all(
+    'SELECT * FROM clinical_documents WHERE patient_id = ? ORDER BY created_at DESC',
+    [patientId]
+  );
+  return rows.map((r) => ({
+    id: String(r.id),
+    patientId: String(r.patient_id),
+    docType: r.doc_type,
+    title: r.title,
+    body: r.body,
+    createdBy: r.created_by,
+    createdByName: r.created_by_name,
+    created_at: r.created_at
+  }));
+}
+
+async function createDocument(body, user, userId) {
+  const { fillTemplate, listTemplates } = require('../utils/clinicalTemplates');
+  let title = body.title;
+  let content = body.body;
+  if (body.templateKey && !content) {
+    const filled = fillTemplate(body.templateKey, body.vars || {});
+    if (!filled) {
+      const err = new Error('Unknown template');
+      err.status = 400;
+      throw err;
+    }
+    title = filled.title;
+    content = filled.body;
+  }
+  const result = await run(
+    `INSERT INTO clinical_documents (patient_id, doc_type, title, body, created_by, created_by_name)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [body.patientId, body.docType || body.templateKey || 'letter', title || 'Letter', content || '', user.id, user.fullName]
+  );
+  publishChange('clinical', 'created', { id: result.lastID, patientId: body.patientId, type: 'document' }, userId);
+  return { id: String(result.lastID), title, body: content };
+}
+
+function getLetterTemplates() {
+  const { listTemplates } = require('../utils/clinicalTemplates');
+  return listTemplates();
+}
+
 module.exports = {
   listCharts,
   createChart,
@@ -249,5 +335,11 @@ module.exports = {
   listNotes,
   createNote,
   treatmentSummary,
-  assertCanViewPlan
+  assertCanViewPlan,
+  getChartDiff,
+  listPerioCharts,
+  createPerioChart,
+  listDocuments,
+  createDocument,
+  getLetterTemplates
 };

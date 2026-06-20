@@ -72,6 +72,19 @@ function canBookAnyAppointment(user) {
   return isAdmin(user) || isReceptionist(user);
 }
 
+function canDeletePatient(user) {
+  return canViewAllPatients(user);
+}
+
+function canMutatePatient(user, patient) {
+  if (canViewAllPatients(user)) return true;
+  if (isDentist(user)) {
+    return String(patient.assigned_doctor_id) === String(user.id)
+      && patient.assignment_status === 'confirmed';
+  }
+  return false;
+}
+
 function canBookOwnPatientAppointment(user) {
   return isDentist(user);
 }
@@ -95,5 +108,7 @@ module.exports = {
   canManageStaff,
   canExportAllPatients,
   canBookAnyAppointment,
-  canBookOwnPatientAppointment
+  canBookOwnPatientAppointment,
+  canDeletePatient,
+  canMutatePatient
 };

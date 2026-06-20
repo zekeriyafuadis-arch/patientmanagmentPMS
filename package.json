@@ -5,12 +5,17 @@
   "main": "electron/main.js",
   "scripts": {
     "start": "node backend/server.js",
+    "start:prod": "node scripts/start-production.js",
     "dev": "nodemon backend/server.js",
     "electron": "electron .",
     "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000/api/v1/admin/health && electron .\"",
+    "build:win": "electron-builder --win",
+    "build:portable": "electron-builder --win portable",
     "backup": "node scripts/backup-database.js",
     "seed-demo": "node scripts/seed-demo.js",
-    "test": "node --test backend/tests/*.test.js"
+    "test": "node --test backend/tests/*.test.js",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -20,6 +25,7 @@
     "exceljs": "^4.4.0",
     "express": "^4.18.2",
     "express-rate-limit": "^7.5.0",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^1.4.5-lts.1",
     "pdfkit": "^0.18.0",
@@ -30,9 +36,48 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "concurrently": "^8.2.2",
     "electron": "^27.0.0",
+    "electron-builder": "^24.13.3",
     "nodemon": "^3.0.1",
     "wait-on": "^7.0.2"
+  },
+  "build": {
+    "appId": "com.dramin.dentalpms",
+    "productName": "Dr Amin Dental PMS",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "backend/**/*",
+      "frontend/**/*",
+      "electron/**/*",
+      "scripts/backup-database.js",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "frontend/icons/icon.svg"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }

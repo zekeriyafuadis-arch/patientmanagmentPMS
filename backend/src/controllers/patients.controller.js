@@ -5,9 +5,12 @@ const fs = require('fs');
 const path = require('path');
 const { logAudit } = require('../utils/audit');
 const { publishChange } = require('../utils/publishChange');
-const { canExportAllPatients } = require('../utils/permissions');
+const { canExportAllPatients, canMutatePatient, canDeletePatient, canAssignDoctors } = require('../utils/permissions');
 class PatientController {
     static createPatient(req, res) {
+        if (req.user.role === 'dentist') {
+            return res.status(403).json({ success: false, error: 'Insufficient permissions' });
+        }
         PatientService.createPatient(req.body, async (err, result) => {
             if (err) {
                 return res.status(400).json({ success: false, error: err.error || err });
@@ -89,12 +92,56 @@ class PatientController {
         });
     }
 
+    static checkDuplicates(req, res) {
+        const { phone, name, father_name, fatherName, dob, mrn, excludeId } = req.query;
+        PatientService.findDuplicates({
+            phone,
+            name,
+            fatherName: father_name || fatherName,
+            dob,
+            mrn,
+            excludeId
+        }, (err, matches) => {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            res.json({ success: true, data: matches, hasDuplicates: matches.length > 0 });
+        });
+    }
+
+    static getDoctorVisitHistory(req, res) {
+        PatientService.getDoctorVisitHistory(req.params.id, (err, visits) => {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            res.json({ success: true, data: visits });
+        });
+    }
+
+    static updatePrimaryDoctor(req, res) {
+        if (!canAssignDoctors(req.user)) {
+            return res.status(403).json({ success: false, error: 'Insufficient permissions' });
+        }
+        PatientService.updatePrimaryDoctor(req.params.id, req.body, async (err) => {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            await logAudit({
+                action: 'patient.primary_doctor',
+                entityType: 'patient',
+                entityId: req.params.id,
+                user: req.user,
+                details: req.body.primary_doctor_name || req.body.doctorName,
+                req
+            });
+            publishChange('patient', 'updated', { id: req.params.id }, req.user?.id);
+            res.json({ success: true });
+        });
+    }
+
     static updatePatient(req, res) {
     const id = req.params.id;
-    
+
     PatientService.getPatientById(id, (err, existing) => {
         if (err || !existing) {
             return res.status(404).json({ success: false, error: 'Patient not found' });
+        }
+        if (!canMutatePatient(req.user, existing)) {
+            return res.status(403).json({ success: false, error: 'Insufficient permissions' });
         }
         const merged = { ...existing, ...req.body };
         delete merged.id;
@@ -122,19 +169,27 @@ class PatientController {
 
     static deletePatient(req, res) {
         const id = req.params.id;
-        PatientService.deletePatient(id, async (err) => {
-            if (err) {
-                return res.status(500).json({ success: false, error: err.message });
+        if (!canDeletePatient(req.user)) {
+            return res.status(403).json({ success: false, error: 'Insufficient permissions' });
+        }
+        PatientService.getPatientById(id, (lookupErr, existing) => {
+            if (lookupErr || !existing) {
+                return res.status(404).json({ success: false, error: 'Patient not found' });
             }
-            await logAudit({
-                action: 'patient.delete',
-                entityType: 'patient',
-                entityId: id,
-                user: req.user,
-                req
+            PatientService.deletePatient(id, async (err) => {
+                if (err) {
+                    return res.status(500).json({ success: false, error: err.message });
+                }
+                await logAudit({
+                    action: 'patient.delete',
+                    entityType: 'patient',
+                    entityId: id,
+                    user: req.user,
+                    req
+                });
+                publishChange('patient', 'deleted', { id }, req.user?.id);
+                res.json({ success: true, message: 'Patient deleted successfully' });
             });
-            publishChange('patient', 'deleted', { id }, req.user?.id);
-            res.json({ success: true, message: 'Patient deleted successfully' });
         });
     }
 
@@ -156,6 +211,14 @@ class PatientController {
             if (!patient) {
                 return res.status(404).json({ success: false, error: 'Patient not found' });
             }
+            await logAudit({
+                action: 'export.patient_pdf',
+                entityType: 'patient',
+                entityId: id,
+                user: req.user,
+                details: patient.mrn,
+                req
+            });
             PatientController._streamPatientPdf(res, patient);
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });
@@ -257,6 +320,13 @@ class PatientController {
             if (err) {
                 return res.status(500).json({ success: false, error: err.message });
             }
+            logAudit({
+                action: 'export.patients_pdf',
+                entityType: 'patients',
+                user: req.user,
+                details: `${patients.length} records`,
+                req
+            }).catch(() => {});
             
             const doc = new PDFDocument({ margin: 50, autoFirstPage: true });
             const filename = `all_patients_${Date.now()}.pdf`;
@@ -348,6 +418,13 @@ class PatientController {
             if (err) {
                 return res.status(500).json({ success: false, error: err.message });
             }
+            logAudit({
+                action: 'export.patients_csv',
+                entityType: 'patients',
+                user: req.user,
+                details: `${patients.length} records`,
+                req
+            }).catch(() => {});
             
             const headers = [
                 'MRN', 'Registration Date', 'Full Name', 'Father\'s Name', 'Grandfather\'s Name',
@@ -401,6 +478,13 @@ class PatientController {
             if (err) {
                 return res.status(500).json({ success: false, error: err.message });
             }
+            await logAudit({
+                action: 'export.patients_excel',
+                entityType: 'patients',
+                user: req.user,
+                details: `${patients.length} records`,
+                req
+            });
             
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Patients');

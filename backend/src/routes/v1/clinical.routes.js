@@ -30,6 +30,14 @@ function requireClinicalViewer(getPatientId) {
         });
         return next();
       }
+      await logAudit({
+        action: 'clinical.view',
+        entityType: 'patient',
+        entityId: String(patientId),
+        user: req.user,
+        details: req.path,
+        req
+      });
       const allowed = await canAccessClinical(req.user, patientId);
       if (!allowed) {
         return res.status(403).json({
@@ -52,6 +60,13 @@ router.get('/plans/single/:id', requireRole('admin', 'dentist'), ClinicalControl
 router.put('/plans/:id', requireRole('admin', 'dentist'), ClinicalController.updatePlan);
 router.get('/notes/:patientId', requireRole('admin', 'dentist'), requireClinicalViewer((req) => req.params.patientId), ClinicalController.listNotes);
 router.post('/notes', requireRole('dentist'), requireClinicalAccess((req) => req.body.patientId), ClinicalController.createNote);
+router.get('/chart-diff/:patientId', requireRole('admin', 'dentist'), requireClinicalViewer((req) => req.params.patientId), ClinicalController.getChartDiff);
+router.get('/perio/:patientId', requireRole('admin', 'dentist'), requireClinicalViewer((req) => req.params.patientId), ClinicalController.listPerioCharts);
+router.post('/perio', requireRole('dentist'), requireClinicalAccess((req) => req.body.patientId), ClinicalController.createPerioChart);
+router.get('/documents/:patientId', requireRole('admin', 'dentist'), requireClinicalViewer((req) => req.params.patientId), ClinicalController.listDocuments);
+router.post('/documents', requireRole('dentist'), requireClinicalAccess((req) => req.body.patientId), ClinicalController.createDocument);
+router.get('/letter-templates', requireRole('admin', 'dentist', 'receptionist'), ClinicalController.listLetterTemplates);
+router.get('/documents/pdf/:id', requireRole('admin', 'dentist', 'receptionist'), ClinicalController.downloadDocumentPdf);
 router.get('/treatment-summary', requireRole('admin', 'receptionist'), ClinicalController.treatmentSummary);
 
 module.exports = router;

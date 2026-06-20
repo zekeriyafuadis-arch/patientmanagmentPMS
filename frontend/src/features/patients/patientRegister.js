@@ -18,7 +18,7 @@ export class PatientRegister {
      */
     async render() {
         return `
-            <div class="register-container">
+            <div class="register-container" data-testid="register-page">
                 <!-- Header -->
                 <div class="register-header">
                     <h1>
@@ -722,27 +722,25 @@ export class PatientRegister {
      */
     async checkDuplicatePatient(formData) {
         try {
-            const byPhone = await patientService.search(formData.phone_number);
-            const phoneMatch = (byPhone || []).find(
-                (p) => p.phone_number === formData.phone_number
-            );
-            if (phoneMatch) {
-                return confirm(
-                    `A patient with this phone already exists:\n${phoneMatch.name} (${phoneMatch.mrn})\n\nRegister anyway?`
-                );
-            }
-            const byName = await patientService.search(formData.name);
-            const nameDobMatch = (byName || []).find(
-                (p) =>
-                    p.name.toLowerCase() === formData.name.toLowerCase() &&
-                    p.dob === formData.dob
-            );
-            if (nameDobMatch) {
-                return confirm(
-                    `A patient with the same name and date of birth exists:\n${nameDobMatch.mrn}\n\nRegister anyway?`
-                );
-            }
-            return true;
+            const res = await patientService.checkDuplicates({
+                phone: formData.phone_number,
+                name: formData.name,
+                father_name: formData.father_name,
+                dob: formData.dob
+            });
+            const matches = res.data || [];
+            if (matches.length === 0) return true;
+
+            const reasons = {
+                phone: 'same phone number',
+                name_father: 'same name and father\'s name',
+                name_dob: 'same name and date of birth',
+                mrn: 'same MRN',
+                dob: 'same date of birth'
+            };
+            const list = matches.map((m) => `• ${m.name} (${m.mrn}) — ${reasons[m.matchReason] || m.matchReason}`).join('\n');
+            const proceed = confirm(`Possible duplicate patient(s) found:\n\n${list}\n\nRegister anyway?`);
+            return proceed;
         } catch {
             return true;
         }

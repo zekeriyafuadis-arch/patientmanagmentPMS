@@ -6,7 +6,7 @@ import {
 import { patientService } from '../../services/patientService.js';
 import { procedureService } from '../../services/procedureService.js';
 import { printReceipt } from '../../services/exportService.js';
-import { getCurrentRole, canAccessBilling, canApplyDiscountDirectly, canViewRevenue } from '../../services/authService.js';
+import { getCurrentRole, canAccessBilling, canApplyDiscountDirectly, canRequestDiscount, canViewRevenue } from '../../services/authService.js';
 
 export class Billing {
   constructor() {
@@ -18,19 +18,20 @@ export class Billing {
     this.selectedInvoice = null;
     this.canEdit = canAccessBilling(getCurrentRole());
     this.canApproveDiscount = canApplyDiscountDirectly(getCurrentRole());
+    this.canRequestDiscount = canRequestDiscount(getCurrentRole());
     this.lineItems = [];
   }
 
   async render() {
     return `
-      <div class="billing-container">
+      <div class="billing-container" data-testid="billing-page">
         <div class="billing-header">
           <div>
             <h1><i class="fas fa-file-invoice-dollar"></i> Billing</h1>
             <p>Invoices, payments, and receipts</p>
           </div>
           ${this.canEdit ? `
-            <button class="btn-primary" id="newInvoiceBtn">
+            <button class="btn-primary" id="newInvoiceBtn" data-testid="new-invoice-btn">
               <i class="fas fa-plus"></i> New Invoice
             </button>
           ` : ''}
@@ -86,6 +87,12 @@ export class Billing {
               <div class="form-field">
                 <label>Invoice Discount</label>
                 <input type="number" id="invDiscount" min="0" step="0.01" value="0">
+                ${this.canRequestDiscount ? `
+                  <p class="field-hint">Discounts you enter require admin approval before payments can be recorded.</p>
+                ` : ''}
+                ${this.canApproveDiscount ? `
+                  <p class="field-hint">Discounts you enter are applied immediately.</p>
+                ` : ''}
               </div>
               <div class="form-field full-width">
                 <label>Notes</label>
@@ -173,12 +180,43 @@ export class Billing {
 
     if (canViewRevenue(getCurrentRole())) {
       const stats = await billingService.getRevenueStats();
+      const eod = await billingService.getEodReport().catch(() => null);
       el.innerHTML = `
         <div class="billing-stat-card"><span>Today</span><strong>${stats.today.toFixed(2)}</strong></div>
         <div class="billing-stat-card"><span>This Month</span><strong>${stats.month.toFixed(2)}</strong></div>
         <div class="billing-stat-card"><span>Outstanding</span><strong>${stats.outstanding.toFixed(2)}</strong></div>
         <div class="billing-stat-card"><span>All Time</span><strong>${stats.allTime.toFixed(2)}</strong></div>
+        ${eod ? `
+          <div class="billing-stat-card billing-eod-card">
+            <span>End-of-Day (${eod.totalCount} payments)</span>
+            <strong>${eod.grandTotal.toFixed(2)}</strong>
+            <button type="button" class="btn-secondary btn-sm" id="downloadEodPdfBtn">PDF</button>
+          </div>
+        ` : ''}
       `;
+      document.getElementById('downloadEodPdfBtn')?.addEventListener('click', () => billingService.downloadEodReportPdf());
+      return;
+    }
+
+    if (this.canEdit) {
+      const eod = await billingService.getEodReport().catch(() => null);
+      const out = await billingService.getOutstanding().catch(() => ({ outstanding: 0 }));
+      const open = this.invoices.filter((i) => !['paid', 'cancelled'].includes(i.status)).length;
+      const pendingDiscount = this.invoices.filter((i) => i.status === 'pending_discount').length;
+      el.innerHTML = `
+        <div class="billing-stat-card"><span>Outstanding</span><strong>${(out.outstanding || 0).toFixed(2)}</strong></div>
+        <div class="billing-stat-card"><span>Open Invoices</span><strong>${open}</strong></div>
+        <div class="billing-stat-card"><span>Pending Discounts</span><strong>${pendingDiscount}</strong></div>
+        <div class="billing-stat-card"><span>Total Invoices</span><strong>${this.invoices.length}</strong></div>
+        ${eod ? `
+          <div class="billing-stat-card billing-eod-card">
+            <span>Today EOD (${eod.totalCount})</span>
+            <strong>${eod.grandTotal.toFixed(2)}</strong>
+            <button type="button" class="btn-secondary btn-sm" id="downloadEodPdfBtn">PDF</button>
+          </div>
+        ` : ''}
+      `;
+      document.getElementById('downloadEodPdfBtn')?.addEventListener('click', () => billingService.downloadEodReportPdf());
       return;
     }
 
@@ -393,7 +431,7 @@ export class Billing {
         ${payments.length > 0 ? `
           <h4>Payments</h4>
           <table class="treatment-table">
-            <thead><tr><th>Date</th><th>Method</th><th>Amount</th><th>By</th></tr></thead>
+            <thead><tr><th>Date</th><th>Method</th><th>Amount</th><th>By</th><th></th></tr></thead>
             <tbody>
               ${payments.map((p) => `
                 <tr>
@@ -401,6 +439,7 @@ export class Billing {
                   <td>${p.method}</td>
                   <td>${parseFloat(p.amount).toFixed(2)}</td>
                   <td>${this.esc(p.receivedByName || '')}</td>
+                  <td><button type="button" class="btn-secondary btn-sm receipt-pdf-btn" data-id="${p.id}">PDF</button></td>
                 </tr>
               `).join('')}
             </tbody>
@@ -408,6 +447,7 @@ export class Billing {
         ` : ''}
         <div class="inv-detail-actions">
           <button class="btn-secondary" id="printReceiptBtn"><i class="fas fa-print"></i> Print Receipt</button>
+          <button class="btn-secondary" id="downloadInvoicePdfBtn"><i class="fas fa-file-pdf"></i> Invoice PDF</button>
           ${this.canEdit && inv.balance > 0 && inv.status !== 'cancelled' && !discountPending ? `
             <button class="btn-primary" id="recordPaymentBtn"><i class="fas fa-money-bill"></i> Record Payment</button>
           ` : ''}
@@ -420,6 +460,22 @@ export class Billing {
 
     document.getElementById('printReceiptBtn')?.addEventListener('click', () => {
       printReceipt(inv, payments);
+    });
+    document.getElementById('downloadInvoicePdfBtn')?.addEventListener('click', async () => {
+      try {
+        await billingService.downloadInvoicePdf(inv.id, `${inv.invoiceNumber || inv.id}.pdf`);
+      } catch (err) {
+        if (window.Toast) window.Toast.error(err.message || 'PDF download failed');
+      }
+    });
+    document.querySelectorAll('.receipt-pdf-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await billingService.downloadReceiptPdf(btn.dataset.id);
+        } catch (err) {
+          if (window.Toast) window.Toast.error(err.message || 'Receipt PDF failed');
+        }
+      });
     });
     document.getElementById('approveDiscountBtn')?.addEventListener('click', async () => {
       const btn = document.getElementById('approveDiscountBtn');
@@ -632,6 +688,10 @@ export class Billing {
         method: document.getElementById('paymentMethod').value,
         reference: document.getElementById('paymentReference').value,
         notes: document.getElementById('paymentNotes').value
+      }).then(async (result) => {
+        if (result?.id && confirm('Download payment receipt PDF?')) {
+          await billingService.downloadReceiptPdf(result.id);
+        }
       });
       this.closePaymentModal();
       await this.loadData();

@@ -101,5 +101,40 @@ export const dentalService = {
   async getTreatmentSummary() {
     const res = await apiGet('/clinical/treatment-summary');
     return res.data;
+  },
+
+  async getChartDiff(patientId) {
+    const res = await apiGet(`/clinical/chart-diff/${patientId}`);
+    return res.data;
+  },
+
+  async getPerioCharts(patientId) {
+    const res = await apiGet(`/clinical/perio/${patientId}`);
+    return res.data;
+  },
+
+  async savePerioChart(patientId, chartData, visitDate) {
+    const res = await apiPost('/clinical/perio', { patientId, chartData, visitDate });
+    return res.data;
+  },
+
+  async getLetterTemplates() {
+    const res = await apiGet('/clinical/letter-templates');
+    return res.data;
+  },
+
+  async getDocuments(patientId) {
+    const res = await apiGet(`/clinical/documents/${patientId}`);
+    return res.data;
+  },
+
+  async createDocument(payload) {
+    const res = await apiPost('/clinical/documents', payload);
+    return res.data;
+  },
+
+  async downloadDocumentPdf(docId) {
+    const { apiDownload } = await import('./apiClient.js');
+    await apiDownload(`/clinical/documents/pdf/${docId}`, `letter-${docId}.pdf`);
   }
 };

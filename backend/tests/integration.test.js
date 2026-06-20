@@ -1,6 +1,6 @@
 const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { startTestServer, jsonRequest, sseConnect, loginAs, createStaff, setupConfirmedPatient, samplePatient } = require('./helpers');
+const { startTestServer, jsonRequest, binaryRequest, sseConnect, loginAs, createStaff, setupConfirmedPatient, samplePatient } = require('./helpers');
 
 const TEST_ADMIN_EMAIL = 'admin@pws.com';
 const TEST_ADMIN_PASSWORD = 'admin123';
@@ -29,6 +29,8 @@ describe('API integration', () => {
       assert.equal(status, 200);
       assert.equal(data.success, true);
       assert.equal(data.emailDomain, '@pws.com');
+      assert.ok(Array.isArray(data.networkUrls));
+      assert.equal(data.passwordPolicy.minLength, 6);
     });
 
     it('rejects login with invalid body', async () => {
@@ -678,6 +680,215 @@ describe('API integration', () => {
       const { status } = await jsonRequest(ctx.baseUrl, '/events/stream');
       assert.equal(status, 401);
     });
+
+    it('rejects event stream for deactivated staff', async () => {
+      const adminToken = await loginAs(ctx.baseUrl, 'admin', TEST_ADMIN_PASSWORD);
+      const staffId = await createStaff(ctx.baseUrl, adminToken, {
+        email: 'inactive.sse',
+        password: 'sse12345',
+        fullName: 'Inactive SSE User',
+        role: 'receptionist'
+      });
+      const userToken = await loginAs(ctx.baseUrl, 'inactive.sse', 'sse12345');
+      await jsonRequest(ctx.baseUrl, `/staff/${staffId}/active`, {
+        method: 'PATCH',
+        token: adminToken,
+        body: { active: false }
+      });
+      const { status } = await jsonRequest(ctx.baseUrl, '/events/stream', { token: userToken });
+      assert.equal(status, 401);
+    });
+  });
+
+  describe('patient write scoping', () => {
+    let adminToken;
+    let dentistToken;
+    let unassignedPatientId;
+
+    before(async () => {
+      adminToken = await loginAs(ctx.baseUrl, 'admin', TEST_ADMIN_PASSWORD);
+      await createStaff(ctx.baseUrl, adminToken, {
+        email: 'scope.dent',
+        password: 'den12345',
+        fullName: 'Scope Dentist',
+        role: 'dentist'
+      });
+      dentistToken = await loginAs(ctx.baseUrl, 'scope.dent', 'den12345');
+      const created = await jsonRequest(ctx.baseUrl, '/patients', {
+        method: 'POST',
+        token: adminToken,
+        body: { ...samplePatient, name: 'Unassigned Scope Patient', phone_number: '0911000088' }
+      });
+      unassignedPatientId = created.data.data.id;
+    });
+
+    it('blocks dentist from updating unassigned patient', async () => {
+      const { status, data } = await jsonRequest(ctx.baseUrl, `/patients/${unassignedPatientId}`, {
+        method: 'PUT',
+        token: dentistToken,
+        body: { name: 'Should Not Update' }
+      });
+      assert.equal(status, 403);
+      assert.equal(data.success, false);
+    });
+
+    it('blocks dentist from deleting patients', async () => {
+      const { status, data } = await jsonRequest(ctx.baseUrl, `/patients/${unassignedPatientId}`, {
+        method: 'DELETE',
+        token: dentistToken
+      });
+      assert.equal(status, 403);
+      assert.equal(data.success, false);
+    });
+  });
+
+  describe('billing PDF export', () => {
+    let adminToken;
+    let invoiceId;
+
+    before(async () => {
+      adminToken = await loginAs(ctx.baseUrl, 'admin', TEST_ADMIN_PASSWORD);
+      const created = await jsonRequest(ctx.baseUrl, '/patients', {
+        method: 'POST',
+        token: adminToken,
+        body: { ...samplePatient, name: 'PDF Invoice Patient', phone_number: '0911000099' }
+      });
+      const patientId = created.data.data.id;
+      const invoice = await jsonRequest(ctx.baseUrl, '/billing/invoices', {
+        method: 'POST',
+        token: adminToken,
+        body: {
+          patientId,
+          patientName: 'PDF Invoice Patient',
+          items: [{ description: 'PDF Test Service', quantity: 1, unitPrice: 250 }]
+        }
+      });
+      invoiceId = invoice.data.data.id;
+    });
+
+    it('downloads invoice PDF from dedicated route', async () => {
+      const { status, contentType, buffer } = await binaryRequest(
+        ctx.baseUrl,
+        `/billing/invoices/${invoiceId}/pdf`,
+        { token: adminToken }
+      );
+      assert.equal(status, 200);
+      assert.match(contentType, /pdf/i);
+      assert.ok(buffer.length > 100);
+      assert.equal(buffer.slice(0, 4).toString(), '%PDF');
+    });
+  });
+
+  describe('appointment assignment workflow', () => {
+    let adminToken;
+    let dentistToken;
+    let patientId;
+    let appointmentId;
+
+    before(async () => {
+      adminToken = await loginAs(ctx.baseUrl, 'admin', TEST_ADMIN_PASSWORD);
+      await createStaff(ctx.baseUrl, adminToken, {
+        email: 'workflow.dent',
+        password: 'den12345',
+        fullName: 'Workflow Dentist',
+        role: 'dentist'
+      });
+      dentistToken = await loginAs(ctx.baseUrl, 'workflow.dent', 'den12345');
+      const created = await jsonRequest(ctx.baseUrl, '/patients', {
+        method: 'POST',
+        token: adminToken,
+        body: { ...samplePatient, name: 'Workflow Patient', phone_number: '0911000101' }
+      });
+      patientId = created.data.data.id;
+      const me = await jsonRequest(ctx.baseUrl, '/auth/me', { token: dentistToken });
+      const assign = await jsonRequest(ctx.baseUrl, '/appointments/assign', {
+        method: 'POST',
+        token: adminToken,
+        body: {
+          patientId,
+          staffId: me.data.user.id,
+          datetime: new Date(Date.now() + 86400000 * 3).toISOString(),
+          duration: 30
+        }
+      });
+      appointmentId = assign.data.data.appointmentId;
+    });
+
+    it('lists pending confirmations for assigned dentist', async () => {
+      const { status, data } = await jsonRequest(ctx.baseUrl, '/appointments/pending-confirmations', {
+        token: dentistToken
+      });
+      assert.equal(status, 200);
+      assert.ok(Array.isArray(data.data));
+      assert.ok(data.data.some((row) => String(row.id) === String(appointmentId)));
+    });
+
+    it('confirms assignment and exposes patient to dentist', async () => {
+      const confirm = await jsonRequest(ctx.baseUrl, `/appointments/${appointmentId}/confirm`, {
+        method: 'POST',
+        token: dentistToken
+      });
+      assert.equal(confirm.status, 200);
+
+      const patient = await jsonRequest(ctx.baseUrl, `/patients/${patientId}`, { token: dentistToken });
+      assert.equal(patient.status, 200);
+      assert.equal(patient.data.data.name, 'Workflow Patient');
+    });
+  });
+
+  describe('protected image files', () => {
+    it('rejects image file download without authentication', async () => {
+      const { status } = await binaryRequest(ctx.baseUrl, '/images/file/1');
+      assert.equal(status, 401);
+    });
+  });
+});
+
+describe('admin restore', () => {
+  let ctx;
+  let adminToken;
+  let backupName;
+  let deletedPatientId;
+
+  before(async () => {
+    ctx = await startTestServer();
+    adminToken = await loginAs(ctx.baseUrl, 'admin', TEST_ADMIN_PASSWORD);
+    const created = await jsonRequest(ctx.baseUrl, '/patients', {
+      method: 'POST',
+      token: adminToken,
+      body: { ...samplePatient, name: 'Restore Marker Patient', phone_number: '0911000102' }
+    });
+    deletedPatientId = created.data.data.id;
+    const backup = await jsonRequest(ctx.baseUrl, '/admin/backup', {
+      method: 'POST',
+      token: adminToken,
+      body: {}
+    });
+    backupName = backup.data.data.name;
+    await jsonRequest(ctx.baseUrl, `/patients/${deletedPatientId}`, {
+      method: 'DELETE',
+      token: adminToken
+    });
+  });
+
+  after(async () => {
+    await ctx.close();
+  });
+
+  it('restores database from backup', async () => {
+    const missing = await jsonRequest(ctx.baseUrl, `/patients/${deletedPatientId}`, { token: adminToken });
+    assert.equal(missing.status, 404);
+
+    const restore = await jsonRequest(ctx.baseUrl, '/admin/restore', {
+      method: 'POST',
+      token: adminToken,
+      body: { name: backupName }
+    });
+    assert.equal(restore.status, 200, restore.data?.error || 'restore failed');
+
+    const restored = await jsonRequest(ctx.baseUrl, `/patients/${deletedPatientId}`, { token: adminToken });
+    assert.equal(restored.status, 200);
+    assert.equal(restored.data.data.name, 'Restore Marker Patient');
   });
 });
 

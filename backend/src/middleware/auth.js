@@ -2,12 +2,14 @@ const jwt = require('jsonwebtoken');
 const { get } = require('../config/database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'saydoc-local-sqlite-secret-change-me';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN
+  || (process.env.NODE_ENV === 'production' ? '24h' : '7d');
 
 function signToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role, fullName: user.full_name },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: JWT_EXPIRES_IN }
   );
 }
 

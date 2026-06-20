@@ -1,10 +1,11 @@
 const express = require('express');
 const { verifyToken } = require('../../middleware/auth');
+const { get } = require('../../config/database');
 const { subscribe } = require('../../lib/eventBus');
 
 const router = express.Router();
 
-router.get('/stream', (req, res) => {
+router.get('/stream', async (req, res) => {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : req.query.token;
 
@@ -17,6 +18,11 @@ router.get('/stream', (req, res) => {
     user = verifyToken(token);
   } catch {
     return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid token' } });
+  }
+
+  const staff = await get('SELECT id, active FROM staff WHERE id = ?', [user.id]);
+  if (!staff || !staff.active) {
+    return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Account inactive or not found' } });
   }
 
   res.setHeader('Content-Type', 'text/event-stream');

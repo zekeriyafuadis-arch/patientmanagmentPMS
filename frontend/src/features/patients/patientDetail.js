@@ -70,6 +70,7 @@ export class PatientDetail {
             
             if (data.success && data.data) {
                 this.patient = data.data;
+                this.doctorVisits = await patientService.getDoctorVisitHistory(this.patientId).catch(() => []);
                 this.displayPatientDetails();
                 this.setupEventListeners();
                 if (this.patient.canViewClinical) {
@@ -388,6 +389,7 @@ export class PatientDetail {
             </div>
             
             ${this.renderAssignmentBanner(patient)}
+            ${this.renderDoctorCarePanel(patient)}
 
             ${this.renderBillingSection()}
             
@@ -430,8 +432,47 @@ export class PatientDetail {
             <div class="assignment-banner assignment-${cls}">
                 <i class="fas fa-user-md"></i>
                 <strong>${this.escapeHtml(patient.assigned_doctor_name)}</strong>
-                <span>— ${statusLabels[patient.assignment_status] || patient.assignment_status}</span>
+                <span>— ${statusLabels[patient.assignment_status] || patient.assignment_status} (this visit)</span>
             </div>`;
+    }
+
+    renderDoctorCarePanel(patient) {
+        const visits = this.doctorVisits || [];
+        const lastVisit = visits[0];
+        return `
+            <div class="detail-card doctor-care-card">
+                <div class="card-header">
+                    <i class="fas fa-user-doctor"></i>
+                    <h3>Doctor Care</h3>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="card-content">
+                    <div class="info-row">
+                        <div class="info-label"><i class="fas fa-star"></i> Primary / preferred doctor:</div>
+                        <div class="info-value">
+                            ${patient.primary_doctor_name
+                                ? `<strong>${this.escapeHtml(patient.primary_doctor_name)}</strong>`
+                                : '<span class="text-muted">Not set — assigned on first completed visit</span>'}
+                            ${canAssignDoctors() ? `<button type="button" class="btn-secondary btn-sm" id="changePrimaryDoctorBtn" style="margin-left:8px;">Change</button>` : ''}
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fas fa-history"></i> Last visit with:</div>
+                        <div class="info-value">${lastVisit?.doctorName ? `${this.escapeHtml(lastVisit.doctorName)} · ${new Date(lastVisit.datetime).toLocaleDateString()}` : 'No prior visits recorded'}</div>
+                    </div>
+                    ${visits.length > 1 ? `
+                        <details class="doctor-history-details">
+                            <summary>Previous doctors (${visits.length - 1} earlier visit(s))</summary>
+                            <ul class="doctor-history-list">
+                                ${visits.slice(1, 8).map((v) => `
+                                    <li>${new Date(v.datetime).toLocaleDateString()} — ${this.escapeHtml(v.doctorName || 'Unassigned')} (${v.type || 'visit'})</li>
+                                `).join('')}
+                            </ul>
+                        </details>
+                    ` : ''}
+                </div>
+            </div>
+        `;
     }
 
     renderClinicalLockedMessage(patient) {
@@ -707,6 +748,30 @@ export class PatientDetail {
         }
 
         document.getElementById('assignDoctorBtn')?.addEventListener('click', () => this.assignDoctor());
+        document.getElementById('changePrimaryDoctorBtn')?.addEventListener('click', () => this.changePrimaryDoctor());
+    }
+
+    async changePrimaryDoctor() {
+        if (!canAssignDoctors()) return;
+        try {
+            const { staffService } = await import('../../services/staffService.js');
+            const staff = await staffService.getAll();
+            const dentists = (staff || []).filter((s) => s.role === 'dentist' && s.active !== false);
+            if (!dentists.length) {
+                if (window.Toast) window.Toast.warning('No dentists available');
+                return;
+            }
+            const names = dentists.map((d, i) => `${i + 1}. ${d.fullName}`).join('\n');
+            const choice = prompt(`Select primary doctor by number:\n${names}`, '1');
+            const idx = parseInt(choice, 10) - 1;
+            if (Number.isNaN(idx) || !dentists[idx]) return;
+            const doc = dentists[idx];
+            await patientService.updatePrimaryDoctor(this.patientId, doc.id, doc.fullName);
+            if (window.Toast) window.Toast.success(`Primary doctor set to ${doc.fullName}`);
+            await this.loadPatientDetails();
+        } catch (err) {
+            if (window.Toast) window.Toast.error(err.message || 'Could not update primary doctor');
+        }
     }
 
     async assignDoctor() {

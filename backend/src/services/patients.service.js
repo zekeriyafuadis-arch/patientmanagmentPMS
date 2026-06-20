@@ -90,6 +90,41 @@ class PatientService {
         }
         PatientService.searchPatients(searchTerm, callback);
     }
+
+  static findDuplicates(criteria, callback) {
+    PatientModel.findDuplicates(criteria, callback);
+  }
+
+  static getDoctorVisitHistory(patientId, callback) {
+    const { all } = require('../config/database');
+    all(
+      `SELECT id, datetime, staff_id, staff_name, type, status, notes, created_at
+       FROM appointments
+       WHERE patient_id = ? AND status IN ('completed', 'checkout', 'with_doctor', 'in_chair', 'arrived', 'confirmed')
+       ORDER BY datetime DESC
+       LIMIT 50`,
+      [patientId],
+      (err, rows) => {
+        if (err) return callback(err);
+        callback(null, (rows || []).map((r) => ({
+          id: String(r.id),
+          datetime: r.datetime,
+          doctorId: r.staff_id || '',
+          doctorName: r.staff_name || '',
+          type: r.type,
+          status: r.status,
+          notes: r.notes || ''
+        })));
+      }
+    );
+  }
+
+  static updatePrimaryDoctor(id, body, callback) {
+    PatientModel.updatePrimaryDoctor(id, {
+      doctorId: body.primary_doctor_id || body.doctorId,
+      doctorName: body.primary_doctor_name || body.doctorName
+    }, callback);
+  }
 }
 
 module.exports = PatientService;

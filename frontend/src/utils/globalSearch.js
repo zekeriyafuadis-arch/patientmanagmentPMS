@@ -162,7 +162,7 @@ function bindResultClicks(container) {
         window.app?.loadPage?.(hash);
       } else if (patientId) {
         window.location.hash = `patient/${patientId}`;
-        window.app?.loadPage?.('patient', patientId);
+        window.app?.loadPatientDetail?.(patientId);
       }
     });
   });

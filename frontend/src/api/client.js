@@ -81,3 +81,35 @@ export async function apiDelete(path) {
 export async function apiUpload(path, formData) {
   return apiFetch(path, { method: 'POST', body: formData });
 }
+
+export async function apiDownload(path, filename) {
+  const headers = {};
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, { headers });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new ApiError(parseErrorMessage(data, res.status), { status: res.status });
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || 'download.pdf';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function apiBlob(path) {
+  const headers = {};
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, { headers });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new ApiError(parseErrorMessage(data, res.status), { status: res.status });
+  }
+  return res.blob();
+}

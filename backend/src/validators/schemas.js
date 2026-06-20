@@ -1,5 +1,11 @@
 const { z } = require('zod');
 const { normalizePatientDemographics } = require('../utils/patientDemographics');
+const { getMinPasswordLength } = require('../utils/passwordPolicy');
+
+function passwordField(label = 'Password') {
+  const minLength = getMinPasswordLength();
+  return z.string().min(minLength, `${label} must be at least ${minLength} characters`);
+}
 
 const authLoginSchema = z.object({
   email: z.string().trim().min(1, 'Username is required'),
@@ -8,7 +14,7 @@ const authLoginSchema = z.object({
 
 const authPasswordChangeSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(6, 'New password must be at least 6 characters')
+  newPassword: passwordField('New password')
 });
 
 const optionalText = z

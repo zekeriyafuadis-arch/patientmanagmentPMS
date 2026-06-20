@@ -29,6 +29,24 @@ const upload = multer({
   }
 });
 
+router.get('/file/:id', requireRole('admin', 'dentist'), async (req, res) => {
+  try {
+    const row = await get('SELECT * FROM patient_images WHERE id = ?', [req.params.id]);
+    if (!row) return res.status(404).json({ success: false, error: 'Not found' });
+    const { canAccessClinical } = require('../../utils/clinicalAccess');
+    const allowed = await canAccessClinical(req.user, String(row.patient_id));
+    if (!allowed) {
+      return res.status(403).json({ success: false, error: 'Insufficient permissions' });
+    }
+    if (!row.storage_path || !fs.existsSync(row.storage_path)) {
+      return res.status(404).json({ success: false, error: 'File not found' });
+    }
+    res.sendFile(path.resolve(row.storage_path));
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 router.get('/:patientId', requireRole('admin', 'dentist'), requireClinicalAccess((req) => req.params.patientId), async (req, res) => {
   try {
     const rows = await all(
@@ -42,7 +60,7 @@ router.get('/:patientId', requireRole('admin', 'dentist'), requireClinicalAccess
         patientId: String(r.patient_id),
         fileName: r.file_name,
         storagePath: r.storage_path,
-        downloadUrl: `/uploads/${r.patient_id}/${path.basename(r.storage_path)}`,
+        downloadUrl: `/api/v1/images/file/${r.id}`,
         imageType: r.image_type,
         toothNumber: r.tooth_number,
         notes: r.notes,
@@ -70,7 +88,7 @@ router.post('/:patientId', requireRole('dentist'), requireClinicalAccess((req) =
       success: true,
       data: {
         id: String(result.lastID),
-        downloadUrl: `/uploads/${req.params.patientId}/${req.file.filename}`
+        downloadUrl: `/api/v1/images/file/${result.lastID}`
       }
     });
   } catch (err) {

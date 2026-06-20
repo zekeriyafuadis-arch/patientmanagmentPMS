@@ -1,12 +1,12 @@
 const express = require('express');
-const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const { initDatabase, uploadsDir } = require('./src/config/database');
+const { initDatabase } = require('./src/config/database');
 const apiRoutes = require('./src/routes/v1');
 const requestId = require('./src/middleware/requestId');
 const requestLogger = require('./src/middleware/requestLogger');
 const errorHandler = require('./src/middleware/errorHandler');
+const { applySecurityMiddleware } = require('./src/middleware/security');
 const { authLoginLimiter, apiLimiter, adminBackupLimiter } = require('./src/middleware/rateLimiter');
 
 function createApp() {
@@ -16,11 +16,9 @@ function createApp() {
   app.set('trust proxy', 1);
   app.use(requestId);
   app.use(requestLogger);
-  app.use(cors());
+  applySecurityMiddleware(app);
   app.use(bodyParser.json({ limit: '25mb' }));
   app.use(bodyParser.urlencoded({ extended: true, limit: '25mb' }));
-
-  app.use('/uploads', express.static(uploadsDir));
 
   const v1 = '/api/v1';
   app.use(`${v1}/auth/login`, authLoginLimiter);

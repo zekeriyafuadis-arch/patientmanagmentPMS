@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete } from './apiClient.js';
+import { apiGet, apiPost, apiPut, apiDelete, apiPatch } from './apiClient.js';
 
 export function normalizePatient(data) {
   return { ...data, id: String(data.id) };
@@ -97,5 +97,26 @@ export const patientService = {
     } catch (err) {
       return { success: false, error: err.message };
     }
+  },
+
+  async checkDuplicates(criteria) {
+    const params = new URLSearchParams();
+    Object.entries(criteria || {}).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+    });
+    const res = await apiGet(`/patients/duplicates/check?${params}`);
+    return res;
+  },
+
+  async getDoctorVisitHistory(patientId) {
+    const res = await apiGet(`/patients/${patientId}/doctor-history`);
+    return res.data;
+  },
+
+  async updatePrimaryDoctor(patientId, doctorId, doctorName) {
+    await apiPatch(`/patients/${patientId}/primary-doctor`, {
+      primary_doctor_id: doctorId,
+      primary_doctor_name: doctorName
+    });
   }
 };

@@ -1,7 +1,8 @@
 import { Odontogram } from '../../components/odontogram.js';
-import { dentalService, getConditionMeta } from '../../services/dentalService.js';
+import { dentalService, getConditionMeta, ALL_FDI_TEETH } from '../../services/dentalService.js';
 import { procedureService } from '../../services/procedureService.js';
 import { imageService } from '../../services/imageService.js';
+import { appointmentService } from '../../services/appointmentService.js';
 import { getCurrentRole } from '../../services/authService.js';
 import { canEditClinicalRecords, canAddAdditionalTreatment } from '../../auth/guards.js';
 
@@ -17,6 +18,11 @@ export class PatientClinical {
     this.notes = [];
     this.procedures = [];
     this.images = [];
+    this.chartDiff = null;
+    this.perioCharts = [];
+    this.documents = [];
+    this.letterTemplates = [];
+    this.perioData = {};
     const role = getCurrentRole();
     this.canView = !!(patient?.canViewClinical);
     this.canEdit = this.canView && canEditClinicalRecords(role);
@@ -35,6 +41,8 @@ export class PatientClinical {
           <button class="clinical-tab active" data-tab="chart"><i class="fas fa-teeth"></i> Odontogram</button>
           <button class="clinical-tab" data-tab="treatment"><i class="fas fa-clipboard-list"></i> Treatment Plan</button>
           <button class="clinical-tab" data-tab="notes"><i class="fas fa-notes-medical"></i> Visit Notes</button>
+          <button class="clinical-tab" data-tab="perio"><i class="fas fa-teeth-open"></i> Perio Chart</button>
+          <button class="clinical-tab" data-tab="letters"><i class="fas fa-file-medical"></i> Letters</button>
           <button class="clinical-tab" data-tab="imaging"><i class="fas fa-x-ray"></i> X-Rays</button>
           <button class="clinical-tab" data-tab="history"><i class="fas fa-history"></i> Chart History</button>
         </div>
@@ -53,20 +61,30 @@ export class PatientClinical {
   }
 
   async loadData() {
-    const [charts, plans, notes, procedures, images] = await Promise.all([
+    const [charts, plans, notes, procedures, images, chartDiff, perioCharts, documents, letterTemplates] = await Promise.all([
       dentalService.getChartsByPatient(this.patientId),
       dentalService.getTreatmentPlans(this.patientId),
       dentalService.getVisitNotes(this.patientId),
       procedureService.getActive(),
-      imageService.getByPatient(this.patientId).catch(() => [])
+      imageService.getByPatient(this.patientId).catch(() => []),
+      dentalService.getChartDiff(this.patientId).catch(() => null),
+      dentalService.getPerioCharts(this.patientId).catch(() => []),
+      dentalService.getDocuments(this.patientId).catch(() => []),
+      dentalService.getLetterTemplates().catch(() => [])
     ]);
     this.charts = charts;
     this.plans = plans;
     this.notes = notes;
     this.procedures = procedures;
     this.images = images;
+    this.chartDiff = chartDiff;
+    this.perioCharts = perioCharts;
+    this.documents = documents;
+    this.letterTemplates = letterTemplates;
     const latest = charts[0];
     this.chartData = latest?.chartData || {};
+    const latestPerio = perioCharts[0];
+    this.perioData = latestPerio?.chartData || {};
   }
 
   bindTabs() {
@@ -87,14 +105,32 @@ export class PatientClinical {
       case 'chart': this.renderChartTab(container); break;
       case 'treatment': this.renderTreatmentTab(container); break;
       case 'notes': this.renderNotesTab(container); break;
+      case 'perio': this.renderPerioTab(container); break;
+      case 'letters': this.renderLettersTab(container); break;
       case 'imaging': this.renderImagingTab(container); break;
       case 'history': this.renderHistoryTab(container); break;
     }
   }
 
   renderChartTab(container) {
+    const diff = this.chartDiff;
+    const diffHtml = diff?.hasPrevious && diff.changes?.length ? `
+      <div class="chart-diff-panel">
+        <h4><i class="fas fa-not-equal"></i> Changes since last visit (${new Date(diff.previousVisit).toLocaleDateString()} → ${new Date(diff.currentVisit).toLocaleDateString()})</h4>
+        <ul class="chart-diff-list">
+          ${diff.changes.map((c) => `
+            <li class="chart-diff-item chart-diff-${c.type}">
+              <strong>Tooth ${c.tooth}</strong>: ${c.from.condition} → ${c.to.condition}
+              ${c.to.surfaces?.length ? ` · surfaces: ${c.to.surfaces.join(', ')}` : ''}
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+    ` : (diff?.hasPrevious ? '<p class="chart-hint">No tooth changes since last visit.</p>' : '');
+
     container.innerHTML = `
       <div class="chart-tab">
+        ${diffHtml}
         <div class="chart-toolbar">
           <span class="chart-hint">${this.canEdit ? 'Click a tooth to record condition' : 'View only'}</span>
           ${this.canEdit ? `
@@ -213,6 +249,9 @@ export class PatientClinical {
                   ${this.canAddTreatment && status === 'planned' ? `
                     <button class="btn-status-sm complete-item-btn" data-plan="${plan.id}" data-item="${item.id}">Complete</button>
                   ` : ''}
+                  ${status === 'planned' || status === 'completed' ? `
+                    <button class="btn-secondary btn-sm book-followup-btn" data-plan="${plan.id}" data-item="${item.id}" data-name="${this.esc(item.procedureName)}">Book follow-up</button>
+                  ` : ''}
                   ${item.source === 'admin_additional' ? '<span class="text-muted-sm">Admin additional</span>' : ''}
                   ${status === 'completed' ? '<span class="text-muted-sm">Awaiting invoice</span>' : ''}
                 </td>
@@ -285,6 +324,27 @@ export class PatientClinical {
         await this.loadData();
         this.renderTab();
         if (window.Toast) window.Toast.success('Procedure completed — ready for billing');
+      });
+    });
+
+    document.querySelectorAll('.book-followup-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const weeks = parseInt(prompt('Book follow-up in how many weeks?', '2'), 10) || 2;
+        const dt = new Date();
+        dt.setDate(dt.getDate() + weeks * 7);
+        dt.setHours(9, 0, 0, 0);
+        try {
+          await appointmentService.createFromTreatmentItem({
+            patientId: this.patientId,
+            planId: btn.dataset.plan,
+            itemId: btn.dataset.item,
+            datetime: dt.toISOString(),
+            notes: `Follow-up: ${btn.dataset.name} (+${weeks} weeks)`
+          });
+          if (window.Toast) window.Toast.success(`Follow-up booked in ${weeks} week(s)`);
+        } catch (err) {
+          if (window.Toast) window.Toast.error(err.message || 'Could not book follow-up');
+        }
       });
     });
   }
@@ -499,6 +559,145 @@ export class PatientClinical {
         });
         o.render();
       });
+    });
+  }
+
+  renderPerioTab(container) {
+    const teeth = ALL_FDI_TEETH;
+    container.innerHTML = `
+      <div class="perio-tab">
+        <div class="chart-toolbar">
+          <span class="chart-hint">Basic probing depth (mm) and bleeding on probing (BOP)</span>
+          ${this.canEdit ? `<button class="btn-primary btn-sm" id="savePerioBtn"><i class="fas fa-save"></i> Save Perio Chart</button>` : ''}
+        </div>
+        <div class="perio-grid-wrap">
+          <table class="perio-table">
+            <thead><tr><th>Tooth</th><th>Max PD (mm)</th><th>BOP</th><th>Notes</th></tr></thead>
+            <tbody>
+              ${teeth.map((t) => {
+                const row = this.perioData[t] || {};
+                return `
+                  <tr data-tooth="${t}">
+                    <td>${t}</td>
+                    <td><input type="number" class="perio-pd" min="0" max="15" step="1" value="${row.pd ?? ''}" ${this.canEdit ? '' : 'readonly'}></td>
+                    <td><input type="checkbox" class="perio-bop" ${row.bop ? 'checked' : ''} ${this.canEdit ? '' : 'disabled'}></td>
+                    <td><input type="text" class="perio-notes" value="${this.esc(row.notes || '')}" ${this.canEdit ? '' : 'readonly'}></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    document.getElementById('savePerioBtn')?.addEventListener('click', () => this.savePerioChart());
+  }
+
+  collectPerioData() {
+    const data = {};
+    document.querySelectorAll('.perio-table tbody tr').forEach((tr) => {
+      const tooth = tr.dataset.tooth;
+      const pd = tr.querySelector('.perio-pd')?.value;
+      const bop = tr.querySelector('.perio-bop')?.checked;
+      const notes = tr.querySelector('.perio-notes')?.value?.trim();
+      if (pd || bop || notes) {
+        data[tooth] = { pd: pd ? Number(pd) : null, bop: !!bop, notes: notes || '' };
+      }
+    });
+    return data;
+  }
+
+  async savePerioChart() {
+    try {
+      this.perioData = this.collectPerioData();
+      await dentalService.savePerioChart(this.patientId, this.perioData);
+      await this.loadData();
+      if (window.Toast) window.Toast.success('Perio chart saved');
+      this.renderTab();
+    } catch (err) {
+      if (window.Toast) window.Toast.error(err.message || 'Failed to save perio chart');
+    }
+  }
+
+  renderLettersTab(container) {
+    const p = this.patient || {};
+    container.innerHTML = `
+      <div class="letters-tab">
+        ${this.canEdit ? `
+          <div class="letter-compose card-panel">
+            <h4><i class="fas fa-file-medical"></i> New Letter / Prescription</h4>
+            <div class="form-grid-2">
+              <div class="form-field">
+                <label>Template</label>
+                <select id="letterTemplate">
+                  ${this.letterTemplates.map((t) => `<option value="${t.key}">${this.esc(t.title)}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-field full-width">
+                <label>Reason / Procedure / Medications</label>
+                <textarea id="letterMainText" rows="3" placeholder="Referral reason, post-op procedure, or Rx list"></textarea>
+              </div>
+              <div class="form-field full-width">
+                <label>Additional notes</label>
+                <textarea id="letterNotes" rows="2"></textarea>
+              </div>
+            </div>
+            <button type="button" class="btn-primary btn-sm" id="createLetterBtn"><i class="fas fa-print"></i> Generate & Save</button>
+          </div>
+        ` : ''}
+        <div class="letter-history">
+          <h4>Saved documents</h4>
+          ${this.documents.length === 0 ? '<p class="text-muted">No letters yet.</p>' : `
+            <ul class="letter-list">
+              ${this.documents.map((d) => `
+                <li>
+                  <strong>${this.esc(d.title)}</strong>
+                  <span>${new Date(d.created_at).toLocaleString()} · ${this.esc(d.createdByName || '')}</span>
+                  <button type="button" class="btn-secondary btn-sm download-letter-btn" data-id="${d.id}">PDF</button>
+                </li>
+              `).join('')}
+            </ul>
+          `}
+        </div>
+      </div>
+    `;
+    document.getElementById('createLetterBtn')?.addEventListener('click', async () => {
+      const templateKey = document.getElementById('letterTemplate')?.value;
+      const mainText = document.getElementById('letterMainText')?.value || '';
+      const notes = document.getElementById('letterNotes')?.value || '';
+      const vars = {
+        patientName: p.name || '',
+        mrn: p.mrn || '',
+        dob: p.dob || '',
+        phone: p.phone_number || '',
+        date: new Date().toLocaleDateString(),
+        reason: mainText,
+        procedure: mainText,
+        medications: mainText,
+        notes,
+        customNotes: notes,
+        doctorName: '',
+        clinicName: 'Dr Amin Specialty Dental Clinic',
+        clinicPhone: p.phone_number || '',
+        directions: notes,
+        doctorId: ''
+      };
+      try {
+        const doc = await dentalService.createDocument({
+          patientId: this.patientId,
+          templateKey,
+          vars
+        });
+        await this.loadData();
+        this.renderTab();
+        if (doc?.id) await dentalService.downloadDocumentPdf(doc.id);
+        if (window.Toast) window.Toast.success('Letter saved');
+      } catch (err) {
+        if (window.Toast) window.Toast.error(err.message || 'Failed to create letter');
+      }
+    });
+    document.querySelectorAll('.download-letter-btn').forEach((btn) => {
+      btn.addEventListener('click', () => dentalService.downloadDocumentPdf(btn.dataset.id));
     });
   }
 

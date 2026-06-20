@@ -17,34 +17,83 @@ export class Dashboard {
     }
 
     getDashboardTitle() {
-        if (this.role === 'dentist') return 'My Practice Dashboard';
-        if (this.role === 'receptionist') return 'Reception Dashboard';
-        return 'Clinic Dashboard';
+        if (this.role === 'dentist') return 'My Practice';
+        if (this.role === 'receptionist') return 'Front Desk';
+        return 'Clinic Overview';
+    }
+
+    getHeroBlurb() {
+        if (this.role === 'dentist') {
+            return 'Your confirmed patients, today\'s schedule, and assignments awaiting confirmation.';
+        }
+        if (this.role === 'receptionist') {
+            return 'Check-in queue, arrivals, outstanding balances, and today\'s front-desk priorities.';
+        }
+        return 'Revenue, clinic metrics, discount approvals, and full operational visibility.';
+    }
+
+    renderRoleWidgets() {
+        if (this.role === 'dentist') {
+            return `
+                <div class="dashboard-widgets-row">
+                    <div class="widget-panel widget-panel--accent">
+                        <h3><i class="fas fa-calendar-day"></i> Your day</h3>
+                        <p class="text-muted-sm">Today's appointments and patients assigned to you appear below. Confirm new assignments from the pending panel.</p>
+                    </div>
+                </div>`;
+        }
+        if (this.role === 'receptionist') {
+            return `
+                <div class="dashboard-widgets-row">
+                    <div class="widget-panel widget-panel--reception">
+                        <h3><i class="fas fa-door-open"></i> Arrivals & check-in</h3>
+                        <p class="text-muted-sm">Use the check-in queue to move patients: arrived → in chair → with doctor → checkout.</p>
+                    </div>
+                    <div class="widget-panel widget-panel--reception">
+                        <h3><i class="fas fa-file-invoice-dollar"></i> Unpaid balances</h3>
+                        <p class="text-muted-sm">Outstanding total is in the stat card above. Open <a href="#billing">Billing</a> to collect payments.</p>
+                    </div>
+                </div>`;
+        }
+        return `
+            <div class="dashboard-widgets-row">
+                <div class="widget-panel widget-panel--admin">
+                    <h3><i class="fas fa-coins"></i> Revenue snapshot</h3>
+                    <p class="text-muted-sm">Today and month-to-date collections are in the stat cards. End-of-day PDF is under Billing.</p>
+                </div>
+                <div class="widget-panel widget-panel--admin">
+                    <h3><i class="fas fa-percent"></i> Approvals & compliance</h3>
+                    <p class="text-muted-sm">Discount requests and export/print actions are logged under Settings → Audit Log.</p>
+                </div>
+            </div>`;
     }
 
     async render() {
         const title = this.getDashboardTitle();
+        const roleLabel = this.role === 'dentist' ? 'Dentist' : this.role === 'receptionist' ? 'Reception' : 'Administrator';
+        const heroBlurb = this.getHeroBlurb();
         const statsGrid = this.renderStatsGrid();
+        const roleWidgets = this.renderRoleWidgets();
         const showCharts = this.role === 'admin';
         const showDentalOverview = this.role !== 'dentist';
         const showExport = this.role === 'admin';
 
         return `
             <div class="dashboard-container" data-dashboard-role="${this.role}">
-                <div class="dashboard-header">
-                    <h1>
-                        <i class="fas fa-chart-line"></i>
-                        ${title}
-                    </h1>
-                    <div class="dashboard-subtitle">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Last updated: ${new Date().toLocaleString()}</span>
+                <div class="dashboard-hero">
+                    <div class="hero-text">
+                        <span class="role-badge"><i class="fas fa-id-badge"></i> ${roleLabel}</span>
+                        <h1>${title}</h1>
+                        <p class="hero-sub">${heroBlurb}</p>
+                        <p class="hero-meta"><i class="fas fa-clock"></i> Updated ${new Date().toLocaleString()}</p>
                     </div>
                 </div>
 
                 <div class="stats-grid">
                     ${statsGrid}
                 </div>
+
+                ${roleWidgets}
 
                 ${showDentalOverview ? `
                 <div class="dental-overview-section">
@@ -75,6 +124,20 @@ export class Dashboard {
                             <a href="#billing" class="view-all-link">Open Billing →</a>
                         </div>
                         <div id="discountApprovalList"></div>
+                    </div>
+                </div>
+                ` : ''}
+
+                ${this.role !== 'dentist' ? `
+                <div class="check-in-queue-section">
+                    <div class="recent-card check-in-card">
+                        <div class="recent-header">
+                            <h3><i class="fas fa-door-open"></i> Patient Check-In Queue</h3>
+                            <span class="text-muted-sm">Arrived → In chair → With doctor → Checkout</span>
+                        </div>
+                        <div id="checkInQueueList" class="check-in-queue-list">
+                            <div class="loading">Loading check-in queue...</div>
+                        </div>
                     </div>
                 </div>
                 ` : ''}
@@ -364,6 +427,7 @@ export class Dashboard {
             }
 
             this.loadTodaySchedule(todayAppts);
+            if (this.role !== 'dentist') await this.loadCheckInQueue();
             this.loadRecentPatients(patients);
             this.checkAlerts(patients);
             if (this.role !== 'dentist') await this.loadDentalMetrics(metrics);
@@ -489,6 +553,52 @@ export class Dashboard {
         }
     }
 
+    async loadCheckInQueue() {
+        const container = document.getElementById('checkInQueueList');
+        if (!container) return;
+        try {
+            const queue = await appointmentService.getCheckInQueue(new Date());
+            const flowOrder = ['arrived', 'confirmed', 'scheduled', 'in_chair', 'with_doctor', 'checkout'];
+            const sorted = [...queue].sort((a, b) => {
+                const ai = flowOrder.indexOf(a.status);
+                const bi = flowOrder.indexOf(b.status);
+                return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+            });
+            if (sorted.length === 0) {
+                container.innerHTML = '<p class="text-muted">No patients in today\'s queue yet.</p>';
+                return;
+            }
+            container.innerHTML = sorted.map((appt) => {
+                const time = new Date(appt.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const status = getStatusMeta(appt.status);
+                const next = appointmentService.getNextCheckInStatus(appt.status);
+                const nextLabel = next ? getStatusMeta(next).label : null;
+                return `
+                    <div class="check-in-row" data-appt-id="${appt.id}">
+                        <div class="check-in-time">${time}</div>
+                        <div class="check-in-patient">
+                            <strong>${this.escapeHtml(appt.patientName)}</strong>
+                            <span>${this.escapeHtml(appt.staffName || 'Unassigned')} · ${appt.patientMrn}</span>
+                        </div>
+                        <span class="status-badge check-in-status" style="background:${status.color}">${status.label}</span>
+                        ${next ? `<button type="button" class="btn-primary btn-sm check-in-advance-btn" data-id="${appt.id}" data-next="${next}">→ ${nextLabel}</button>` : ''}
+                    </div>
+                `;
+            }).join('');
+            container.querySelectorAll('.check-in-advance-btn').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    await appointmentService.updateStatus(btn.dataset.id, btn.dataset.next);
+                    if (window.Toast) window.Toast.success('Status updated');
+                    await this.loadCheckInQueue();
+                    const todayAppts = await appointmentService.getToday().catch(() => []);
+                    this.loadTodaySchedule(todayAppts);
+                });
+            });
+        } catch (err) {
+            container.innerHTML = `<p class="text-muted">Could not load queue: ${this.escapeHtml(err.message)}</p>`;
+        }
+    }
+
     loadTodaySchedule(appointments) {
         const container = document.getElementById('todayScheduleList');
         if (!container) return;
@@ -541,11 +651,12 @@ export class Dashboard {
                 e.stopPropagation();
                 const id = btn.dataset.id;
                 const appt = active.find((a) => String(a.id) === String(id));
-                const next = appt?.status === 'scheduled' ? 'confirmed' : 'in_chair';
+                const next = appointmentService.getNextCheckInStatus(appt?.status) || 'arrived';
                 await appointmentService.updateStatus(id, next);
-                if (window.Toast) window.Toast.success(next === 'confirmed' ? 'Confirmed' : 'Patient checked in');
+                if (window.Toast) window.Toast.success('Patient checked in');
                 const todayAppts = await appointmentService.getToday().catch(() => []);
                 this.loadTodaySchedule(todayAppts);
+                await this.loadCheckInQueue();
             });
         });
     }

@@ -1,7 +1,7 @@
 import { apiGet } from '../api/client.js';
 
 let cached = null;
-const FALLBACK = { emailDomain: '@pws.com' };
+const FALLBACK = { emailDomain: '@pws.com', passwordPolicy: { minLength: 6, requireLetterAndNumber: false } };
 const STORAGE_KEY = 'pms_clinic_email_config';
 
 export function getCachedClinicEmailConfig() {
@@ -27,7 +27,10 @@ export async function loadClinicEmailConfig() {
   } catch { /* ignore */ }
   try {
     const res = await apiGet('/auth/config');
-    cached = { emailDomain: res.emailDomain || FALLBACK.emailDomain };
+    cached = {
+      emailDomain: res.emailDomain || FALLBACK.emailDomain,
+      passwordPolicy: res.passwordPolicy || FALLBACK.passwordPolicy
+    };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(cached));
   } catch {
     cached = { ...FALLBACK };

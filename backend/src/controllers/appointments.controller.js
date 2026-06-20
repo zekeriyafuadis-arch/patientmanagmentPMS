@@ -112,6 +112,24 @@ class AppointmentsController {
       handleError(res, err);
     }
   }
+
+  static async getCheckInQueue(req, res) {
+    try {
+      const data = await AppointmentsService.getCheckInQueue(req.user, req.query);
+      res.json({ success: true, data });
+    } catch (err) {
+      handleError(res, err);
+    }
+  }
+
+  static async createFromTreatmentItem(req, res) {
+    try {
+      const data = await AppointmentsService.createFromTreatmentItem(req.user, req.body);
+      res.status(201).json({ success: true, data });
+    } catch (err) {
+      handleError(res, err, 400);
+    }
+  }
 }
 
 module.exports = AppointmentsController;

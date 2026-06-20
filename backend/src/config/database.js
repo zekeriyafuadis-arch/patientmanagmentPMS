@@ -137,6 +137,14 @@ async function initDatabase() {
     await addColumnIfMissing('patients', col, def);
   }
 
+  const patientDoctorCols = [
+    ['primary_doctor_id', 'TEXT'],
+    ['primary_doctor_name', 'TEXT']
+  ];
+  for (const [col, def] of patientDoctorCols) {
+    await addColumnIfMissing('patients', col, def);
+  }
+
   await run(`
     CREATE TABLE IF NOT EXISTS appointments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -157,12 +165,43 @@ async function initDatabase() {
     )
   `);
 
+  await addColumnIfMissing('appointments', 'treatment_plan_id', 'TEXT');
+  await addColumnIfMissing('appointments', 'treatment_item_id', 'TEXT');
+  await addColumnIfMissing('appointments', 'check_in_at', 'TEXT');
+
   await run(`
     CREATE TABLE IF NOT EXISTS dental_charts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       patient_id INTEGER NOT NULL,
       chart_data TEXT NOT NULL,
       visit_date TEXT NOT NULL,
+      created_by TEXT,
+      created_by_name TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (patient_id) REFERENCES patients(id)
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS perio_charts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      patient_id INTEGER NOT NULL,
+      chart_data TEXT NOT NULL,
+      visit_date TEXT NOT NULL,
+      created_by TEXT,
+      created_by_name TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (patient_id) REFERENCES patients(id)
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS clinical_documents (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      patient_id INTEGER NOT NULL,
+      doc_type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
       created_by TEXT,
       created_by_name TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -293,6 +332,9 @@ async function initDatabase() {
   await run(`CREATE INDEX IF NOT EXISTS idx_appointments_datetime ON appointments(datetime)`);
   await run(`CREATE INDEX IF NOT EXISTS idx_invoices_created ON invoices(created_at)`);
   await run(`CREATE INDEX IF NOT EXISTS idx_invoices_patient_id ON invoices(patient_id)`);
+  await run(`CREATE INDEX IF NOT EXISTS idx_perio_patient ON perio_charts(patient_id)`);
+  await run(`CREATE INDEX IF NOT EXISTS idx_clinical_docs_patient ON clinical_documents(patient_id)`);
+  await run(`CREATE INDEX IF NOT EXISTS idx_patients_phone ON patients(phone_number)`);
 
   await addColumnIfMissing('invoices', 'discount_status', "TEXT DEFAULT 'none'");
   await addColumnIfMissing('invoices', 'discount_requested_by', 'TEXT');

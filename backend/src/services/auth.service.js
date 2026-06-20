@@ -14,8 +14,18 @@ function mapUser(staff) {
   };
 }
 
+const { getLanAddresses } = require('../utils/networkUrls');
+const { getPasswordPolicy } = require('../utils/passwordPolicy');
+
 function getPublicConfig() {
-  return { emailDomain };
+  const port = parseInt(process.env.PORT, 10) || 3000;
+  return {
+    emailDomain,
+    port,
+    localUrl: `http://localhost:${port}`,
+    networkUrls: getLanAddresses(port),
+    passwordPolicy: getPasswordPolicy()
+  };
 }
 
 async function login(email, password, req) {
@@ -68,6 +78,8 @@ async function changePassword(userId, currentPassword, newPassword, req) {
     err.status = 401;
     throw err;
   }
+  const { assertPasswordStrength } = require('../utils/passwordPolicy');
+  assertPasswordStrength(newPassword);
   const hash = bcrypt.hashSync(newPassword, 10);
   await run(
     'UPDATE staff SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',

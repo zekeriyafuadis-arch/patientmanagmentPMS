@@ -448,13 +448,17 @@ class AppointmentsService {
       return;
     }
 
-    await AppointmentsRepository.updateStatus(id, status);
+    const extra = (status === 'arrived' && !appt.check_in_at)
+      ? { checkInAt: new Date().toISOString() }
+      : {};
+    await AppointmentsRepository.updateStatus(id, status, extra);
 
     if (status === 'cancelled' && appt) {
       await AppointmentsRepository.clearPatientAssignmentIfMatch(appt.patient_id, appt.id);
     }
 
     if (status === 'completed' && appt) {
+      await AppointmentsRepository.ensurePrimaryDoctor(appt.patient_id, appt.staff_id, appt.staff_name);
       await AppointmentsRepository.updatePatientLastVisit(appt.patient_id, new Date().toISOString());
       await AppointmentsRepository.clearPatientAssignment(appt.patient_id);
 
@@ -493,6 +497,77 @@ class AppointmentsService {
     await AppointmentsRepository.remove(id);
     await AppointmentsRepository.clearPatientAssignmentIfMatch(appt.patient_id, appt.id);
     publishChange('appointment', 'deleted', { id }, user?.id);
+  }
+
+  static async getCheckInQueue(user, { date } = {}) {
+    if (!canBookAnyAppointment(user) && user.role !== 'dentist') {
+      const err = new Error('Insufficient permissions');
+      err.statusCode = 403;
+      throw err;
+    }
+    const rows = await AppointmentsRepository.findCheckInQueue(date);
+    return rows.map(AppointmentsRepository.mapAppt);
+  }
+
+  static async createFromTreatmentItem(user, body) {
+    if (!canBookAnyAppointment(user)) {
+      const err = new Error('Insufficient permissions');
+      err.statusCode = 403;
+      throw err;
+    }
+    const { patientId, planId, itemId, datetime, staffId, staffName, duration, notes } = body;
+    if (!patientId || !planId || !itemId || !datetime) {
+      const err = new Error('patientId, planId, itemId, and datetime are required');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const plan = await get('SELECT * FROM treatment_plans WHERE id = ? AND patient_id = ?', [planId, patientId]);
+    if (!plan) {
+      const err = new Error('Treatment plan not found');
+      err.statusCode = 404;
+      throw err;
+    }
+    const items = JSON.parse(plan.items || '[]');
+    const item = items.find((i) => String(i.id) === String(itemId));
+    if (!item) {
+      const err = new Error('Treatment item not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const patient = await get('SELECT * FROM patients WHERE id = ?', [patientId]);
+    if (!patient) {
+      const err = new Error('Patient not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    let doctorId = staffId || patient.primary_doctor_id || patient.assigned_doctor_id || '';
+    let doctorName = staffName || patient.primary_doctor_name || patient.assigned_doctor_name || '';
+    if (doctorId && !doctorName) {
+      const doc = await get('SELECT full_name FROM staff WHERE id = ?', [doctorId]);
+      doctorName = doc?.full_name || '';
+    }
+
+    const result = await AppointmentsRepository.insertExtended([
+      patientId,
+      patient.name,
+      patient.mrn,
+      doctorId,
+      doctorName,
+      datetime,
+      duration || 30,
+      item.procedureName || 'follow-up',
+      'scheduled',
+      '',
+      notes || `Follow-up: ${item.procedureName || 'procedure'}`,
+      String(planId),
+      String(itemId)
+    ]);
+
+    publishChange('appointment', 'created', { id: result.lastID, patientId, planId, itemId }, user?.id);
+    return { id: String(result.lastID), treatmentPlanId: String(planId), treatmentItemId: String(itemId) };
   }
 }
 

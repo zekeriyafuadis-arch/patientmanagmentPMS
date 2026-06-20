@@ -65,6 +65,8 @@ Copy `.env.example` to `.env` in the project root. The server loads it automatic
 | `NODE_ENV` | `development` | Environment mode |
 | `LOG_LEVEL` | `info` | Pino log level |
 | `JWT_SECRET` | (required in production) | Token signing secret |
+| `JWT_EXPIRES_IN` | `24h` / `7d` | JWT lifetime (production / development) |
+| `PMS_CORS_ORIGINS` | unset | Extra allowed origins in production |
 | `RATE_LIMIT_MAX` | `300` | API requests per 15 min |
 | `RATE_LIMIT_AUTH_MAX` | `10` | Login attempts per 15 min |
 | `RATE_LIMIT_BACKUP_MAX` | `5` | Backup requests per hour |

@@ -32,7 +32,7 @@ export class Odontogram {
       <div class="odontogram-wrapper">
         <div class="odontogram-legend">
           ${TOOTH_CONDITIONS.map((c) => `
-            <span class="legend-item"><span class="legend-dot" style="background:${c.color}"></span>${c.label}</span>
+            <span class="legend-item"><span class="legend-dot legend-dot--${c.value}"></span>${c.label}</span>
           `).join('')}
         </div>
         <div class="odontogram-arch">
@@ -118,8 +118,8 @@ export class Odontogram {
     const missing = ['missing', 'extracted'].includes(meta.value);
     const surfaces = (data.surfaces || []).join('');
     return `
-      <button type="button" class="tooth-btn ${missing ? 'tooth-missing' : ''}" data-tooth="${num}"
-              style="--tooth-color:${meta.color}" title="Tooth ${num}: ${meta.label}"
+      <button type="button" class="tooth-btn ${missing ? 'tooth-missing' : ''}" data-tooth="${num}" data-condition="${meta.value}"
+              title="Tooth ${num}: ${meta.label}"
               ${this.readOnly ? 'disabled' : ''} aria-label="Tooth ${num}, ${meta.label}">
         <span class="tooth-num">${num}</span>
         ${surfaces ? `<span class="tooth-surf">${surfaces}</span>` : ''}

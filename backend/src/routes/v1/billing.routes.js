@@ -16,6 +16,7 @@ function requireBillingAccess(req, res, next) {
 }
 
 router.get('/invoices', requireBillingAccess, BillingController.listInvoices);
+router.get('/invoices/:id/pdf', requireBillingAccess, BillingController.downloadInvoicePdf);
 router.get('/invoices/:id', requireBillingAccess, BillingController.getInvoice);
 router.get('/pending-treatment-items', requireBillingAccess, BillingController.getPendingTreatmentItems);
 router.post('/invoices/from-treatment-plan', requireRole('admin', 'receptionist'), BillingController.createInvoiceFromTreatmentPlan);
@@ -28,5 +29,8 @@ router.post('/payments', requireRole('admin', 'receptionist'), validate(paymentC
 router.get('/outstanding', requireBillingAccess, BillingController.getOutstanding);
 router.get('/pending-discounts', requireRole('admin'), BillingController.getPendingDiscounts);
 router.get('/revenue-stats', requireRole('admin'), BillingController.getRevenueStats);
+router.get('/eod-report', requireBillingAccess, BillingController.getEodCashReport);
+router.get('/eod-report/pdf', requireBillingAccess, BillingController.downloadEodReportPdf);
+router.get('/payments/:id/receipt.pdf', requireBillingAccess, BillingController.downloadReceiptPdf);
 
 module.exports = router;

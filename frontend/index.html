@@ -5,10 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Dr Amin Specialty Dental Clinic — Patient and appointment management">
     <meta name="theme-color" content="#0891b2">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Dr Amin PMS">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/icon.svg">
     <title>Dr Amin Specialty Dental Clinic | PMS</title>
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦷</text></svg>">
+    <!-- Favicon (legacy) -->
+    <link rel="alternate icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦷</text></svg>">
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,6 +25,7 @@
     
     <!-- Main Stylesheet -->
    <link rel="stylesheet" href="src/styles/root.css">
+    <link rel="stylesheet" href="src/styles/design-system.css">
     <link rel="stylesheet" href="src/styles/ui-layout.css">
     <link rel="stylesheet" href="src/styles/nav-pill.css">
     <link rel="stylesheet" href="src/styles/dashboard.css">
@@ -71,6 +79,9 @@
                 </button>
             </div>
             <div class="top-bar-right">
+                <button type="button" class="top-bar-btn" id="mobileSearchBtn" title="Search patients" aria-label="Search">
+                    <i class="fas fa-search"></i>
+                </button>
                 <!-- Theme Toggle -->
                 <button class="top-bar-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode">
                     <i class="fas fa-moon"></i>
@@ -160,6 +171,17 @@
             </div>
         </main>
     </div><!-- /#app-shell -->
+
+    <div id="pwaInstallBanner" class="pwa-install-banner hidden" role="region" aria-label="Install app">
+        <div class="pwa-install-text">
+            <strong>Install on this device</strong>
+            <span>Add Dr Amin PMS to your home screen for quick access.</span>
+        </div>
+        <div class="pwa-install-actions">
+            <button type="button" class="btn-primary btn-sm" id="pwaInstallBannerBtn">Install</button>
+            <button type="button" class="btn-secondary btn-sm" id="pwaInstallDismiss">Not now</button>
+        </div>
+    </div>
 
     <div id="clinicAlertsPanel" class="clinic-alerts-panel hidden" aria-hidden="true">
         <div class="clinic-alerts-header">

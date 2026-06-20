@@ -1,4 +1,4 @@
-import { apiGet, apiUpload, apiDelete } from './apiClient.js';
+import { apiGet, apiUpload, apiDelete, apiBlob } from './apiClient.js';
 
 export function normalizeImage(data) {
   return {
@@ -16,10 +16,23 @@ export function normalizeImage(data) {
   };
 }
 
+async function resolveImageUrl(image) {
+  try {
+    const blob = await apiBlob(`/images/file/${image.id}`);
+    return URL.createObjectURL(blob);
+  } catch {
+    return '';
+  }
+}
+
 export const imageService = {
   async getByPatient(patientId) {
     const res = await apiGet(`/images/${patientId}`);
-    return res.data.map(normalizeImage);
+    const images = res.data.map(normalizeImage);
+    await Promise.all(images.map(async (image) => {
+      image.downloadUrl = await resolveImageUrl(image);
+    }));
+    return images;
   },
 
   async uploadXray(patientId, file, { toothNumber, notes, imageType } = {}) {
@@ -34,7 +47,9 @@ export const imageService = {
     formData.append('imageType', imageType || 'xray');
 
     const res = await apiUpload(`/images/${patientId}`, formData);
-    return res.data;
+    const image = normalizeImage({ ...res.data, patientId, fileName: file.name });
+    image.downloadUrl = await resolveImageUrl(image);
+    return image;
   },
 
   async deleteImage(imageId) {

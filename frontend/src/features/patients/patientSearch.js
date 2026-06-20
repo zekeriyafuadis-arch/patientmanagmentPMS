@@ -1049,20 +1049,9 @@ export class PatientSearch {
         }
     }
     
-    /**
-     * View patient details
-    
-    viewPatient(id) {
-        window.location.hash = `patient/${id}`;
-    }     */
-    
     async viewPatient(id) {
-        // Navigate to detail page
-        const contentArea = document.getElementById('content-area');
-        const { PatientDetail } = await import('./patientDetail.js');
-        const detailPage = new PatientDetail(id);
-        contentArea.innerHTML = await detailPage.render();
-        await detailPage.loadPatientDetails();
+        window.location.hash = `patient/${id}`;
+        await window.app?.loadPatientDetail?.(id);
     }
 
     canEditPatient(patient) {
@@ -1074,11 +1063,8 @@ export class PatientSearch {
      * Edit patient
      */
     async editPatient(id) {
-        const contentArea = document.getElementById('content-area');
-        const { PatientEdit } = await import('./patientEdit.js');
-        const editPage = new PatientEdit(id);
-        contentArea.innerHTML = await editPage.render();
-        await editPage.loadPatientData();
+        window.location.hash = `edit/${id}`;
+        await window.app?.loadPatientEdit?.(id);
     }
 
     /**

@@ -4,6 +4,7 @@ const { normalizeStaffEmail } = require('../utils/emailAddress');
 const { logAudit } = require('../utils/audit');
 const { publishChange } = require('../utils/publishChange');
 const { parseSchedule, DAYS, DEFAULT_SCHEDULE, formatScheduleSummary } = require('../utils/dentistSchedule');
+const { assertPasswordStrength } = require('../utils/passwordPolicy');
 
 function mapStaff(r) {
   const schedule = parseSchedule(r.schedule);
@@ -81,6 +82,7 @@ async function create({ email, password, fullName, role }, user, req) {
     err.status = 409;
     throw err;
   }
+  assertPasswordStrength(password);
   const hash = bcrypt.hashSync(password, 10);
   const defaultSchedule = role === 'dentist' ? JSON.stringify(DEFAULT_SCHEDULE) : null;
   const result = await run(
@@ -147,11 +149,7 @@ async function setActive(staffId, active, user, req) {
 }
 
 async function resetPassword(staffId, newPassword, user, req) {
-  if (!newPassword || String(newPassword).length < 6) {
-    const err = new Error('Password must be at least 6 characters');
-    err.status = 400;
-    throw err;
-  }
+  assertPasswordStrength(newPassword);
   const row = await get('SELECT id, email FROM staff WHERE id = ?', [staffId]);
   if (!row) {
     const err = new Error('Staff not found');

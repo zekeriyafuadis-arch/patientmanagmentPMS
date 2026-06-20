@@ -87,15 +87,25 @@
   align-items: center;
   gap: 4px;
   font-size: 0.7rem;
-  color: var(--gray-dark);
+  color: var(--text-secondary);
 }
 
 .legend-dot {
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
+
+.legend-dot--healthy { background: var(--tooth-healthy); }
+.legend-dot--decay { background: var(--tooth-decay); }
+.legend-dot--filled { background: var(--tooth-filled); }
+.legend-dot--crown { background: var(--tooth-crown); }
+.legend-dot--root_canal { background: var(--tooth-root_canal); }
+.legend-dot--missing { background: var(--tooth-missing); }
+.legend-dot--implant { background: var(--tooth-implant); }
+.legend-dot--extracted { background: var(--tooth-extracted); }
 
 .odontogram-arch { text-align: center; min-width: min-content; }
 
@@ -130,16 +140,16 @@
 .midline {
   width: 2px;
   height: 48px;
-  background: var(--gray-light);
+  background: var(--border-color);
   margin: 0 8px;
 }
 
 .tooth-btn {
   width: 36px;
   height: 44px;
-  border: 2px solid var(--gray-light);
+  border: 2px solid var(--border-color);
   border-radius: 6px 6px 10px 10px;
-  background: var(--tooth-color, #e2e8f0);
+  background: var(--tooth-healthy);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -149,7 +159,18 @@
   transition: transform 0.1s, box-shadow 0.1s;
   font-size: 0.65rem;
   flex-shrink: 0;
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
+
+.tooth-btn[data-condition="healthy"] { background: var(--tooth-healthy); }
+.tooth-btn[data-condition="decay"] { background: var(--tooth-decay); color: #fff; }
+.tooth-btn[data-condition="filled"] { background: var(--tooth-filled); color: #fff; }
+.tooth-btn[data-condition="crown"] { background: var(--tooth-crown); color: #fff; }
+.tooth-btn[data-condition="root_canal"] { background: var(--tooth-root_canal); color: #fff; }
+.tooth-btn[data-condition="missing"] { background: var(--tooth-missing); }
+.tooth-btn[data-condition="implant"] { background: var(--tooth-implant); color: #fff; }
+.tooth-btn[data-condition="extracted"] { background: var(--tooth-extracted); color: #fff; }
 
 .tooth-btn:hover:not(:disabled) {
   transform: scale(1.08);
@@ -160,8 +181,14 @@
 .tooth-btn:disabled { cursor: default; }
 .tooth-missing { opacity: 0.5; text-decoration: line-through; }
 
-.tooth-num { font-weight: 700; color: var(--text-primary); font-size: 0.6rem; }
-.tooth-surf { font-size: 0.55rem; color: var(--text-muted); }
+.tooth-num { font-weight: 700; color: inherit; font-size: 0.6rem; text-shadow: 0 0 2px rgba(0, 0, 0, 0.35); }
+.tooth-surf { font-size: 0.55rem; color: inherit; opacity: 0.9; }
+
+.tooth-btn[data-condition="healthy"] .tooth-num,
+.tooth-btn[data-condition="missing"] .tooth-num {
+  color: var(--text-primary);
+  text-shadow: none;
+}
 
 .tooth-edit-overlay {
   z-index: 10000;
@@ -394,4 +421,102 @@
   color: white;
   font-size: 2rem;
   cursor: pointer;
+}
+
+.chart-diff-panel {
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--surface-elevated, var(--card-bg));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.chart-diff-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+
+.chart-diff-item {
+  padding: 0.35rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.chart-diff-new_issue { color: var(--danger, #e53e3e); }
+.chart-diff-condition_change { color: var(--warning, #dd6b20); }
+.chart-diff-resolved { color: var(--success, #38a169); }
+
+.perio-grid-wrap {
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.perio-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.perio-table th,
+.perio-table td {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.perio-table input[type="number"],
+.perio-table input[type="text"] {
+  width: 100%;
+  max-width: 120px;
+}
+
+.letters-tab .letter-list {
+  list-style: none;
+  padding: 0;
+}
+
+.letters-tab .letter-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.doctor-care-card .doctor-history-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+}
+
+.check-in-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.check-in-row {
+  display: grid;
+  grid-template-columns: 70px 1fr auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated, var(--card-bg));
+}
+
+.check-in-patient span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.billing-eod-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }

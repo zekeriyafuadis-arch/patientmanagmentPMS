@@ -97,6 +97,16 @@
     --z-modal: 1000;
     --z-toast: 2000;
     --z-tooltip: 3000;
+
+    /* Odontogram — light theme */
+    --tooth-healthy: #e2e8f0;
+    --tooth-decay: #f56565;
+    --tooth-filled: #4299e1;
+    --tooth-crown: #9f7aea;
+    --tooth-root_canal: #ed8936;
+    --tooth-missing: #cbd5e1;
+    --tooth-implant: #48bb78;
+    --tooth-extracted: #94a3b8;
 }
 
 /* ========================================
@@ -1154,6 +1164,14 @@ body.dark-mode .loading-overlay,
     --gray: #94a3b8;
     --gray-light: #334155;
     --primary-muted: rgba(34, 211, 238, 0.12);
+    --tooth-healthy: #475569;
+    --tooth-decay: #f87171;
+    --tooth-filled: #60a5fa;
+    --tooth-crown: #a78bfa;
+    --tooth-root_canal: #fb923c;
+    --tooth-missing: #64748b;
+    --tooth-implant: #4ade80;
+    --tooth-extracted: #94a3b8;
 }
 
 body.light-mode {
@@ -1371,12 +1389,11 @@ body.reduce-motion *::after {
     
     .main-content {
         margin-left: 0;
-        margin-top: var(--topbar-height);
+        margin-top: var(--header-height);
         width: 100%;
         max-width: 100%;
         padding: clamp(0.5rem, 3vw, 1rem);
-        height: calc(100vh - var(--topbar-height));
-        height: calc(var(--app-vh) - var(--topbar-height));
+        height: calc(var(--app-vh) - var(--header-height));
     }
     
     .app-title span {

@@ -4,7 +4,8 @@
  */
 
 import { patientService } from '../../services/patientService.js';
-import { exportPatientsToCSV, printAllPatients } from '../../services/exportService.js';
+import { apiDownload } from '../../services/apiClient.js';
+import { printAllPatients } from '../../services/exportService.js';
 import { appointmentService } from '../../services/appointmentService.js';
 import { canAssignDoctors, getCurrentRole } from '../../services/authService.js';
 
@@ -644,31 +645,31 @@ export class Patients {
      */
     async exportToCSV() {
         try {
-            exportPatientsToCSV(this.filteredPatients);
+            await apiDownload('/patients/export/csv', `patients_${new Date().toISOString().split('T')[0]}.csv`);
             this.showToast('CSV exported successfully', 'success');
         } catch (error) {
             console.error('Error exporting CSV:', error);
-            this.showToast('Error exporting CSV', 'error');
+            this.showToast(error.message || 'Error exporting CSV', 'error');
         }
     }
     
     async exportToExcel() {
         try {
-            exportPatientsToCSV(this.filteredPatients, `patients_${new Date().toISOString().split('T')[0]}.xlsx.csv`);
-            this.showToast('Export downloaded (open in Excel)', 'success');
+            await apiDownload('/patients/export/excel', `patients_${new Date().toISOString().split('T')[0]}.xlsx`);
+            this.showToast('Excel file downloaded', 'success');
         } catch (error) {
             console.error('Error exporting Excel:', error);
-            this.showToast('Error exporting data', 'error');
+            this.showToast(error.message || 'Error exporting Excel', 'error');
         }
     }
     
     async exportToPDF() {
         try {
-            printAllPatients(this.filteredPatients);
-            this.showToast('Print view opened', 'success');
+            await apiDownload('/patients/export/pdf/all', `patients_${new Date().toISOString().split('T')[0]}.pdf`);
+            this.showToast('PDF downloaded', 'success');
         } catch (error) {
             console.error('Error exporting PDF:', error);
-            this.showToast('Error opening print view', 'error');
+            this.showToast(error.message || 'Error exporting PDF', 'error');
         }
     }
     

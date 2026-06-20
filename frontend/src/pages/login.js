@@ -24,7 +24,7 @@ export class LoginPage {
 
   renderLoginForm() {
     return `
-      <div class="login-page">
+      <div class="login-page" data-testid="login-page">
         <div class="login-card">
           <div class="login-header">
             <div class="login-logo"><i class="fas fa-tooth"></i></div>
@@ -32,7 +32,7 @@ export class LoginPage {
             <p>${BRANDING.tagline}</p>
           </div>
 
-          <form id="loginForm" class="login-form" novalidate>
+          <form id="loginForm" class="login-form" data-testid="login-form" novalidate>
             <div class="form-group">
               <label for="loginUsername">Username</label>
               <div class="username-field">

@@ -103,6 +103,38 @@ async function findPayments(invoiceId) {
   return all('SELECT * FROM payments ORDER BY created_at DESC');
 }
 
+function mapPayment(r) {
+  return {
+    id: String(r.id),
+    invoiceId: String(r.invoice_id),
+    patientId: r.patient_id ? String(r.patient_id) : '',
+    invoiceNumber: r.invoice_number || '',
+    amount: r.amount,
+    method: r.method,
+    reference: r.reference || '',
+    notes: r.notes || '',
+    receivedBy: r.received_by || '',
+    receivedByName: r.received_by_name || '',
+    createdAt: r.created_at,
+    created_at: r.created_at
+  };
+}
+
+async function findPaymentById(id) {
+  return get('SELECT * FROM payments WHERE id = ?', [id]);
+}
+
+async function findPaymentsInRange(start, end) {
+  return all(
+    `SELECT p.*, i.patient_name, i.invoice_number
+     FROM payments p
+     LEFT JOIN invoices i ON i.id = p.invoice_id
+     WHERE p.created_at >= ? AND p.created_at <= ?
+     ORDER BY p.created_at ASC`,
+    [start, end]
+  );
+}
+
 async function insertPayment(values) {
   return run(
     `INSERT INTO payments (invoice_id, patient_id, invoice_number, amount, method, reference, notes, received_by, received_by_name)
@@ -145,6 +177,9 @@ module.exports = {
   cancelInvoice,
   updateInvoicePayment,
   findPayments,
+  mapPayment,
+  findPaymentById,
+  findPaymentsInRange,
   insertPayment,
   findActiveTreatmentPlans,
   findTreatmentPlanById,

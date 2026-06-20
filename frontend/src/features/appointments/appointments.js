@@ -26,13 +26,13 @@ export class Appointments {
   async render() {
     const dateStr = this.formatDateInput(this.selectedDate);
     return `
-      <div class="appointments-container">
+      <div class="appointments-container" data-testid="appointments-page">
         <div class="appointments-header">
           <div>
             <h1><i class="fas fa-calendar-alt"></i> Appointments</h1>
             <p>Schedule and manage clinic appointments</p>
           </div>
-          <button class="btn-primary" id="newAppointmentBtn">
+          <button class="btn-primary" id="newAppointmentBtn" data-testid="new-appointment-btn">
             <i class="fas fa-plus"></i> New Appointment
           </button>
         </div>

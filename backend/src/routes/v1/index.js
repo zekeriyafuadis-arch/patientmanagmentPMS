@@ -23,5 +23,6 @@ router.use('/images', imageRoutes);
 router.use('/admin', adminRoutes);
 router.use('/events', eventsRoutes);
 router.use('/patients', patientRoutes);
+router.use('/audit', require('./audit.routes'));
 
 module.exports = router;

@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from './apiClient.js';
+import { apiGet, apiPost, apiPut, apiDownload } from './apiClient.js';
 
 export const PAYMENT_METHODS = [
   { value: 'cash', label: 'Cash' },
@@ -106,5 +106,24 @@ export const billingService = {
 
   async approveDiscount(invoiceId) {
     await apiPost(`/billing/invoices/${invoiceId}/approve-discount`, {});
+  },
+
+  async getEodReport(date) {
+    const q = date ? `?date=${date}` : '';
+    const res = await apiGet(`/billing/eod-report${q}`);
+    return res.data;
+  },
+
+  async downloadInvoicePdf(invoiceId, filename) {
+    await apiDownload(`/billing/invoices/${invoiceId}/pdf`, filename || `invoice-${invoiceId}.pdf`);
+  },
+
+  async downloadReceiptPdf(paymentId, filename) {
+    await apiDownload(`/billing/payments/${paymentId}/receipt.pdf`, filename || `receipt-${paymentId}.pdf`);
+  },
+
+  async downloadEodReportPdf(date) {
+    const q = date ? `?date=${date}` : '';
+    await apiDownload(`/billing/eod-report/pdf${q}`, `eod-report-${date || 'today'}.pdf`);
   }
 };

@@ -79,6 +79,19 @@ async function jsonRequest(baseUrl, route, { method = 'GET', body, token } = {})
   return { status: res.status, data };
 }
 
+async function binaryRequest(baseUrl, route, { method = 'GET', token } = {}) {
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${baseUrl}${route}`, { method, headers });
+  const buffer = Buffer.from(await res.arrayBuffer());
+  return {
+    status: res.status,
+    contentType: res.headers.get('content-type') || '',
+    buffer
+  };
+}
+
 async function sseConnect(baseUrl, token) {
   return new Promise((resolve, reject) => {
     const url = new URL(`${baseUrl}/events/stream`);
@@ -171,6 +184,7 @@ const samplePatient = {
 module.exports = {
   startTestServer,
   jsonRequest,
+  binaryRequest,
   sseConnect,
   loginAs,
   createStaff,
