@@ -1,0 +1,274 @@
+.billing-container { padding: 0; }
+
+.billing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.billing-header h1 { font-size: 1.625rem; color: var(--text-primary); }
+.billing-header p { color: var(--text-muted); }
+
+.billing-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.billing-stat-card span { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+.billing-stat-card strong { font-size: 1.375rem; color: var(--primary); }
+
+.billing-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+}
+
+.filter-select, .billing-search {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.billing-search { flex: 1; min-width: 200px; max-width: 400px; }
+
+.invoice-list-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+.invoice-detail-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-xl);
+}
+
+.inv-detail-header h2 { color: var(--text-primary); }
+.line-items-title { margin: var(--spacing-md) 0 var(--spacing-sm); color: var(--text-primary); }
+
+.invoice-list-item {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--gray-light);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.invoice-list-item:hover, .invoice-list-item.active {
+  background: var(--primary-muted);
+}
+
+.inv-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.inv-item-patient { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 6px; }
+
+.inv-item-bottom {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-warning { color: var(--warning); }
+.text-success { color: var(--success); }
+
+.inv-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.billing-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.billing-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: var(--spacing-lg);
+  min-height: min(500px, 50vh);
+  max-width: 100%;
+}
+
+.status-badge.large { padding: 6px 14px; font-size: 0.85rem; }
+
+.status-badge.inv-status-draft { background: var(--text-muted); color: #fff; }
+.status-badge.inv-status-sent { background: #4299e1; color: #fff; }
+.status-badge.inv-status-partial { background: #ed8936; color: #fff; }
+.status-badge.inv-status-paid { background: #48bb78; color: #fff; }
+.status-badge.inv-status-cancelled { background: #f56565; color: #fff; }
+.status-badge.inv-status-pending { background: #9f7aea; color: #fff; }
+
+[data-theme="dark"] .status-badge.inv-status-draft,
+body.dark-mode .status-badge.inv-status-draft { background: #4a5568; }
+
+[data-theme="dark"] .status-badge.inv-status-pending,
+body.dark-mode .status-badge.inv-status-pending { background: #7c3aed; }
+
+.inv-discount-pending-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  border-radius: var(--radius-md);
+  background: rgba(159, 122, 234, 0.12);
+  border: 1px solid rgba(159, 122, 234, 0.35);
+  color: var(--text-primary);
+  flex-wrap: wrap;
+}
+
+body.dark-mode .inv-discount-pending-banner,
+[data-theme="dark"] .inv-discount-pending-banner {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.4);
+}
+
+.inv-totals {
+  text-align: right;
+  margin: var(--spacing-lg) 0;
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+
+.inv-total-line { font-size: 1.1rem; color: var(--primary); }
+
+.inv-detail-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
+}
+
+.invoice-modal-wide { max-width: 720px; }
+
+.line-item-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1.5fr 60px 50px 80px 32px;
+  gap: 6px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.line-item-row select,
+.line-item-row input {
+  padding: 8px;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+
+.invoice-preview-total {
+  text-align: right;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: var(--spacing-md) 0;
+}
+
+.revenue-stat .stat-number { font-size: 1.5rem; }
+
+@media (max-width: 900px) {
+  .billing-layout { grid-template-columns: 1fr; }
+  .billing-stats { grid-template-columns: 1fr 1fr; }
+  .line-item-row { grid-template-columns: 1fr 1fr; }
+}
+
+.pending-treatment-panel {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--primary);
+}
+
+.pending-treatment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.pending-treatment-header h3 {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.pending-count {
+  font-size: 0.8125rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.pending-treatment-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.pending-treatment-info strong { display: block; color: var(--text-primary); }
+.pending-treatment-info > span { font-size: 0.8125rem; color: var(--text-muted); }
+
+.pending-procedure-list {
+  margin: var(--spacing-sm) 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.pending-total {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.inv-plan-link {
+  font-size: 0.8125rem;
+  color: var(--primary);
+  margin-bottom: var(--spacing-sm);
+}

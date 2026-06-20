@@ -10,3 +10,9 @@ Thumbs.db
 *.zip
 electron/assets/icon.*
 !electron/assets/.gitkeep
+.env
+patientsData/*.db
+patientsData/backups/
+patientsData/xrays/
+.agents/
+skills-lock.json

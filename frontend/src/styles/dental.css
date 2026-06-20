@@ -1,0 +1,397 @@
+/* Odontogram & Clinical Records */
+
+.clinical-section {
+  margin-top: var(--spacing-xl);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.clinical-header {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.clinical-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.clinical-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.clinical-tab {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clinical-tab.active {
+  background: var(--surface);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--border-color);
+}
+
+.clinical-tab-content {
+  padding: var(--spacing-xl);
+  min-height: 280px;
+}
+
+.chart-toolbar, .treatment-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.chart-hint { font-size: 0.8125rem; color: var(--text-muted); }
+
+/* Odontogram */
+.odontogram-wrapper {
+  max-width: 100%;
+  width: min(100%, 720px);
+  margin: 0 auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--spacing-sm);
+}
+
+.odontogram-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--gray-dark);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.odontogram-arch { text-align: center; min-width: min-content; }
+
+.odontogram-patient-view {
+  margin: var(--spacing-md) 0 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.arch-label {
+  font-size: 0.75rem;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: var(--spacing-sm) 0;
+}
+
+.tooth-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 3px;
+  margin: var(--spacing-sm) 0;
+  flex-wrap: nowrap;
+  min-width: min-content;
+}
+
+.tooth-row.upper { align-items: flex-end; }
+.tooth-row.lower { align-items: flex-start; }
+
+.midline {
+  width: 2px;
+  height: 48px;
+  background: var(--gray-light);
+  margin: 0 8px;
+}
+
+.tooth-btn {
+  width: 36px;
+  height: 44px;
+  border: 2px solid var(--gray-light);
+  border-radius: 6px 6px 10px 10px;
+  background: var(--tooth-color, #e2e8f0);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  transition: transform 0.1s, box-shadow 0.1s;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.tooth-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+  box-shadow: var(--shadow-md);
+  z-index: 1;
+}
+
+.tooth-btn:disabled { cursor: default; }
+.tooth-missing { opacity: 0.5; text-decoration: line-through; }
+
+.tooth-num { font-weight: 700; color: var(--text-primary); font-size: 0.6rem; }
+.tooth-surf { font-size: 0.55rem; color: var(--text-muted); }
+
+.tooth-edit-overlay {
+  z-index: 10000;
+}
+
+.tooth-edit-modal {
+  background: var(--surface, var(--white));
+  border-radius: var(--radius-xl);
+  width: min(100%, 400px);
+  max-height: calc(var(--app-vh, 100vh) - 2rem);
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-2xl);
+}
+
+.tooth-edit-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  border-top: 1px solid var(--border-color);
+}
+
+.tooth-edit-body { margin: var(--spacing-md) 0; }
+
+.surface-checks {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.surface-checks label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+}
+
+/* Treatment plan */
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.plan-header h4 { color: var(--dark); }
+.plan-meta { font-size: 0.85rem; color: var(--gray); }
+
+.treatment-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.treatment-table th, .treatment-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.treatment-table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.item-status-planned { background: #4299e1; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; }
+.item-status-in_progress { background: #ed8936; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; }
+.item-status-completed { background: #48bb78; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; }
+.item-status-billed { background: #805ad5; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; }
+
+.clinical-billing-hint {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+}
+
+.text-muted-sm { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Visit notes */
+.visit-note-form {
+  background: var(--gray-lighter);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.visit-note-form h4 { margin-bottom: var(--spacing-md); color: var(--dark); }
+
+.clinical-divider {
+  border: none;
+  border-top: 1px solid var(--gray-light);
+  margin: var(--spacing-xl) 0;
+}
+
+.visit-note-card {
+  background: var(--gray-lighter);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  border-left: 3px solid var(--primary);
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--gray);
+  margin-bottom: var(--spacing-sm);
+}
+
+.note-body { font-size: 0.9rem; color: var(--dark); line-height: 1.6; }
+.note-body div { margin-bottom: 4px; }
+
+/* Chart history */
+.chart-history-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--gray-lighter);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.history-date { font-weight: 600; color: var(--dark); min-width: 180px; }
+.history-meta { flex: 1; font-size: 0.85rem; color: var(--gray); }
+
+.text-muted { color: var(--gray-medium); font-size: 0.9rem; }
+
+/* Procedure catalog in settings */
+.procedure-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.procedure-table th, .procedure-table td { padding: 10px; border-bottom: 1px solid var(--gray-light); text-align: left; }
+.procedure-table th { font-size: 0.75rem; text-transform: uppercase; color: var(--gray); }
+.procedure-actions { display: flex; gap: 6px; }
+
+@media (max-width: 600px) {
+  .tooth-btn { width: 28px; height: 36px; font-size: 0.55rem; }
+  .tooth-row { gap: 2px; }
+  .midline { height: 36px; margin: 0 4px; }
+  .clinical-tabs { overflow-x: auto; flex-wrap: nowrap; }
+}
+
+/* X-Ray imaging */
+.imaging-tab { padding: var(--spacing-md) 0; }
+
+.xray-upload-form {
+  background: var(--gray-lighter);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.xray-upload-form h4 { margin-bottom: var(--spacing-md); font-size: 1rem; }
+
+.xray-progress {
+  margin: var(--spacing-sm) 0;
+  font-size: 0.85rem;
+  color: var(--gray-dark);
+}
+
+.xray-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.xray-card {
+  background: var(--gray-lighter);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.xray-thumb {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  background: #1a202c;
+  cursor: pointer;
+}
+
+.xray-meta {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.xray-meta strong { color: var(--dark); }
+.xray-uploader { color: var(--gray-medium); font-size: 0.75rem; }
+
+.xray-card-actions {
+  padding: 0 var(--spacing-md) var(--spacing-md);
+  display: flex;
+  gap: 6px;
+}
+
+.xray-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+}
+
+.xray-lightbox img {
+  max-width: 95%;
+  max-height: 95%;
+  object-fit: contain;
+}
+
+.xray-lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+}

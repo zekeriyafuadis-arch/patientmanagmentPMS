@@ -1,0 +1,185 @@
+.recalls-container {
+  padding: 0;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.recalls-header h1 {
+  font-size: 1.75rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.recalls-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.recalls-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-md);
+  margin: var(--spacing-lg) 0;
+}
+
+.recall-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recall-stat-card span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.recall-stat-card strong {
+  font-size: 1.75rem;
+  color: var(--text-primary);
+}
+
+.recall-stat-card.overdue strong {
+  color: var(--danger);
+}
+
+.recalls-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+.recalls-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.recall-filter-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border-color);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.recall-filter-btn:hover {
+  background: var(--primary-muted);
+  color: var(--primary);
+}
+
+.recall-filter-btn.active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+}
+
+.recall-search {
+  padding: 8px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  min-width: 220px;
+  font-size: 0.875rem;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.recalls-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  overflow: auto;
+}
+
+.recalls-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.recalls-table th,
+.recalls-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.recalls-table th {
+  background: var(--bg-subtle);
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.recall-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.recall-status.overdue {
+  background: var(--danger-muted);
+  color: var(--danger);
+}
+
+.recall-status.due-soon {
+  background: rgba(217, 119, 6, 0.12);
+  color: var(--warning);
+}
+
+.recall-status.scheduled {
+  background: var(--success-muted);
+  color: var(--success);
+}
+
+.recall-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.empty-cell {
+  text-align: center;
+  padding: 2rem !important;
+  color: var(--text-muted);
+}
+
+.recall-patient-label {
+  margin-bottom: var(--spacing-md);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.recall-quick-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .recalls-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recall-search {
+    width: 100%;
+  }
+}

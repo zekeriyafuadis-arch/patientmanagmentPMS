@@ -1,9 +1,8 @@
 @echo off
-title Patient Management System
-echo Starting Patient Management System...
+title Dr Amin Specialty Dental Clinic PMS
+echo Starting Dr Amin Specialty Dental Clinic PMS...
 echo.
 
-:: Check if Node.js is installed
 where node >nul 2>nul
 if %errorlevel% neq 0 (
     echo Node.js is not installed. Please install Node.js first.
@@ -12,14 +11,12 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Check if dependencies are installed
 if not exist "node_modules\" (
     echo Installing dependencies...
     call npm install
 )
 
-:: Start the application
-echo Launching application...
-call npm run start
+echo Launching desktop application...
+call npm run electron-dev
 
 pause

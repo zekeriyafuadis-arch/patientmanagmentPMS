@@ -1,21 +1,38 @@
 {
-  "name": "patient-management-system",
-  "version": "1.0.0",
-  "description": "Offline Patient Management System",
-  "main": "app.js",
+  "name": "saydoc-dental-pms",
+  "version": "3.0.0",
+  "description": "Dr Amin Specialty Dental Clinic — Local SQLite patient management system",
+  "main": "electron/main.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "electron": "electron .",
+    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000/api/v1/admin/health && electron .\"",
+    "backup": "node scripts/backup-database.js",
+    "seed-demo": "node scripts/seed-demo.js",
+    "test": "node --test backend/tests/*.test.js"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "exceljs": "^4.4.0",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.5.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^1.4.5-lts.1",
     "pdfkit": "^0.18.0",
-    "sqlite3": "^5.1.6"
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0",
+    "pino-pretty": "^13.0.0",
+    "sqlite3": "^5.1.6",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "concurrently": "^8.2.2",
+    "electron": "^27.0.0",
+    "nodemon": "^3.0.1",
+    "wait-on": "^7.0.2"
   }
 }

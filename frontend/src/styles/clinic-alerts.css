@@ -1,0 +1,89 @@
+.top-bar-btn-badge { position: relative; }
+
+.top-bar-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  background: #f56565;
+  color: white;
+  border-radius: 8px;
+}
+
+.clinic-alerts-panel {
+  position: fixed;
+  top: 56px;
+  right: 16px;
+  width: min(400px, calc(100vw - 32px));
+  max-height: 70vh;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 10050;
+  display: flex;
+  flex-direction: column;
+}
+
+.clinic-alerts-panel.hidden { display: none; }
+
+.clinic-alerts-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.clinic-alerts-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.clinic-alerts-list {
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+}
+
+.clinic-alert-item {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  background: var(--bg-subtle);
+  cursor: pointer;
+  border-left: 3px solid var(--primary);
+}
+
+.clinic-alert-item.type-assignment_declined { border-left-color: #f56565; }
+.clinic-alert-item.type-assignment_reassigned { border-left-color: #48bb78; }
+.clinic-alert-item.type-assignment_expired { border-left-color: #ed8936; }
+
+.clinic-alert-item p { margin: 0; font-size: 0.875rem; color: var(--text-secondary); }
+.clinic-alert-item small { color: var(--text-muted); font-size: 0.75rem; }
+
+.schedule-editor-grid {
+  display: grid;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.schedule-day-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr auto;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.schedule-day-row label { font-size: 0.875rem; font-weight: 600; }
+
+.dentist-schedule-table .schedule-summary {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}

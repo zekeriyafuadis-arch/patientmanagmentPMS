@@ -1,0 +1,244 @@
+/* Viewport-fit layer — keeps all pages inside the screen without horizontal spill */
+
+.shortcut-hint {
+  position: fixed;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  right: max(1rem, env(safe-area-inset-right));
+  left: auto;
+  max-width: min(420px, calc(100vw - 2rem));
+  background: var(--primary-gradient);
+  color: white;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10000;
+  box-shadow: var(--shadow-xl);
+  font-size: 0.8125rem;
+}
+
+.shortcut-hint div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.shortcut-hint span {
+  font-size: 0.6875rem;
+  opacity: 0.9;
+}
+
+.shortcut-hint .close-hint {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .shortcut-hint {
+    left: max(0.75rem, env(safe-area-inset-left));
+    right: max(0.75rem, env(safe-area-inset-right));
+  }
+}
+
+#auth-screen {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  min-height: var(--app-vh);
+  box-sizing: border-box;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+/* Scroll wide tables inside their panel only */
+.patients-table-container,
+.recalls-table-wrap,
+.audit-log-wrap,
+.billing-layout,
+.appointments-week-wrap,
+.week-grid-wrap,
+.clinical-section,
+.odontogram-wrapper,
+.invoice-list-panel,
+.schedule-editor-grid {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.patients-table,
+.recalls-table,
+.audit-table,
+.staff-table,
+.procedure-table {
+  min-width: min(100%, 640px);
+}
+
+/* Billing splits on medium screens */
+@media (max-width: 1100px) {
+  .billing-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .billing-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .billing-stats {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Patient detail grids */
+@media (max-width: 1024px) {
+  .detail-grid,
+  .patient-info-grid,
+  .detail-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Register / search forms */
+@media (max-width: 900px) {
+  .form-grid,
+  .form-grid-3,
+  .search-filters-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Settings cards */
+.settings-cards {
+  width: 100%;
+  max-width: 100%;
+  display: grid;
+  gap: var(--spacing-lg);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1100px) {
+  .settings-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.settings-card,
+.settings-page-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Modals fit small screens */
+.modal-overlay,
+.appointment-modal,
+.settings-modal {
+  padding: clamp(0.5rem, 3vw, 1.5rem);
+  box-sizing: border-box;
+}
+
+.appointment-modal,
+.settings-modal,
+.invoice-modal-wide {
+  width: min(100%, 560px);
+  max-width: calc(100vw - 2rem);
+  max-height: calc(var(--app-vh) - 2rem);
+  margin: auto;
+}
+
+/* Top bar compresses on narrow desktop */
+.top-bar-center {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.global-search-trigger {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.top-bar-right {
+  flex-shrink: 0;
+}
+
+.user-info #userDisplayName {
+  max-width: min(140px, 20vw);
+}
+
+/* Dashboard charts */
+.charts-section,
+.recent-section {
+  width: 100%;
+  max-width: 100%;
+}
+
+.chart-container {
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+}
+
+.chart-container canvas {
+  max-width: 100% !important;
+}
+
+/* Appointments calendar */
+.appointments-toolbar,
+.billing-toolbar,
+.recalls-toolbar,
+.patients-controls {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Safe areas for notched phones / tablets */
+@supports (padding: max(0px)) {
+  .top-bar {
+    padding-left: max(clamp(0.5rem, 2vw, 1rem), env(safe-area-inset-left));
+    padding-right: max(clamp(0.5rem, 2vw, 1rem), env(safe-area-inset-right));
+  }
+
+  .main-content {
+    padding-bottom: max(clamp(0.75rem, 2vw, var(--spacing-xl)), env(safe-area-inset-bottom));
+  }
+
+  .pill-nav {
+    padding-left: max(0.4rem, env(safe-area-inset-left));
+    padding-right: max(0.4rem, env(safe-area-inset-right));
+  }
+}
+
+/* Ultra-wide: cap readable line length */
+@media (min-width: 1600px) {
+  :root {
+    --content-max: min(1400px, 88vw);
+  }
+}

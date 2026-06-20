@@ -1,0 +1,732 @@
+/* Patients List Page Styles */
+.patients-container {
+    animation: patientsFadeIn 0.5s ease-out;
+}
+
+@keyframes patientsFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Patients Header — layout from ui-layout.css */
+.patients-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.patients-header h1 {
+    font-size: 1.625rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.patients-header h1 i {
+    color: var(--primary);
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+}
+
+/* Search and Filter Bar — toolbar shell from ui-layout.css */
+
+.search-box {
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.625rem 1rem 0.625rem 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-muted);
+}
+
+.filter-dropdown {
+    position: relative;
+}
+
+.filter-btn {
+    padding: 0.625rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.filter-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    min-width: 200px;
+    z-index: 100;
+    display: none;
+    overflow: hidden;
+}
+
+.filter-menu.show {
+    display: block;
+    animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.filter-menu-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+.filter-menu-item:hover {
+    background: var(--gray-lighter);
+    color: var(--primary);
+}
+
+.filter-menu-item:last-child {
+    border-bottom: none;
+}
+
+/* Export Buttons */
+.export-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.export-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    font-size: 0.8125rem;
+    background: var(--surface);
+    color: var(--text-secondary);
+}
+
+.export-btn.csv:hover { background: rgba(5, 150, 105, 0.12); border-color: var(--success); color: var(--success); }
+.export-btn.excel:hover { background: var(--primary-muted); border-color: var(--primary); color: var(--primary); }
+.export-btn.pdf:hover { background: var(--danger-muted); border-color: var(--danger); color: var(--danger); }
+.export-btn.print:hover { background: var(--bg-subtle); border-color: var(--gray-medium); color: var(--text-primary); }
+
+.export-btn:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Table — unified with ui-layout.css */
+.patients-table-container {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    overflow: auto;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.patients-table thead {
+    background: var(--bg-subtle);
+}
+
+.patients-table th {
+    color: var(--text-muted);
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+}
+
+.patients-table th:hover {
+    color: var(--primary);
+}
+
+.patients-table th i {
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+}
+
+.patients-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    vertical-align: middle;
+}
+
+.patients-table tbody tr {
+    transition: background 0.15s ease;
+    cursor: pointer;
+}
+
+.patients-table tbody tr:hover {
+    background: var(--primary-muted);
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-lg);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-active {
+    background: rgba(72, 187, 120, 0.1);
+    color: var(--success);
+}
+
+.status-inactive {
+    background: rgba(245, 101, 101, 0.1);
+    color: var(--danger);
+}
+
+/* Action Buttons */
+.action-buttons-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.action-btn.view {
+    background: rgba(66, 153, 225, 0.1);
+    color: var(--info);
+}
+
+.action-btn.edit {
+    background: rgba(237, 137, 54, 0.1);
+    color: var(--warning);
+}
+
+.action-btn.delete {
+    background: rgba(245, 101, 101, 0.1);
+    color: var(--danger);
+}
+
+.action-btn.pdf {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.action-btn.view:hover {
+    background: var(--info);
+    color: white;
+}
+
+.action-btn.edit:hover {
+    background: var(--warning);
+    color: white;
+}
+
+.action-btn.delete:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.action-btn.pdf:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* Pagination Enhanced */
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.pagination-info {
+    color: var(--gray);
+    font-size: 0.85rem;
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.page-item {
+    list-style: none;
+}
+
+.page-link {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--gray-light);
+    background: var(--white);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--gray-dark);
+    font-weight: 500;
+}
+
+.page-link:hover:not(.disabled) {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.page-link.active {
+    background: var(--primary-gradient);
+    border-color: var(--primary);
+    color: white;
+}
+
+.page-link.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Table Empty State */
+.empty-state-table {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state-table i {
+    font-size: 4rem;
+    color: var(--gray-light);
+    margin-bottom: 1rem;
+}
+
+.empty-state-table h3 {
+    color: var(--gray);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-table p {
+    color: var(--gray-light);
+}
+
+/* Loading Skeleton */
+.skeleton-row {
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.skeleton-cell {
+    height: 20px;
+    background: var(--gray-light);
+    border-radius: var(--radius-sm);
+    width: 80%;
+}
+
+/* Row Selection */
+.patients-table tbody tr.selected {
+    background: var(--primary-muted);
+    border-left: 3px solid var(--primary);
+}
+
+/* Bulk Actions Bar */
+.bulk-actions-bar {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-2xl);
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    z-index: 1000;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translate(-50%, 100%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+.bulk-action-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.bulk-action-btn.delete {
+    background: var(--danger);
+    color: white;
+}
+
+.bulk-action-btn.print {
+    background: var(--info);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .patients-table {
+        font-size: 0.85rem;
+    }
+    
+    .action-buttons-group {
+        flex-direction: column;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .patients-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .patients-controls {
+        flex-direction: column;
+    }
+    
+    .export-buttons {
+        justify-content: stretch;
+    }
+    
+    .export-btn {
+        justify-content: center;
+    }
+    
+    .patients-table-container {
+        overflow-x: auto;
+    }
+    
+    .patients-table {
+        min-width: min(100%, 36rem);
+    }
+    
+    .pagination-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* Dark mode hover — uses theme tokens */
+body.dark-mode .patients-table tbody tr:hover {
+    background: var(--primary-muted);
+}
+
+body.dark-mode .filter-menu {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+}
+
+/* Patients Page Additional Styles */
+.header-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-badge {
+    background: var(--primary-muted);
+    color: var(--primary);
+    border: 1px solid rgba(8, 145, 178, 0.2);
+    padding: 0.375rem 0.875rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.stat-badge i {
+    margin-right: 0.5rem;
+}
+
+.patient-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.patient-name-cell i {
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.gender-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-lg);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.gender-male {
+    background: rgba(2, 132, 199, 0.12);
+    color: var(--info-dark);
+}
+
+.gender-female {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--danger-dark);
+}
+
+.phone-link {
+    color: var(--gray-dark);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.phone-link:hover {
+    color: var(--primary);
+}
+
+.loading-state {
+    text-align: center;
+    padding: 3rem;
+}
+
+.loading-state .loading-spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 1rem;
+}
+
+.action-buttons-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.action-btn i {
+    font-size: 0.875rem;
+}
+
+.action-btn.view {
+    background: rgba(66, 153, 225, 0.1);
+    color: var(--info);
+}
+
+.action-btn.view:hover {
+    background: var(--info);
+    color: white;
+}
+
+.action-btn.edit {
+    background: rgba(237, 137, 54, 0.1);
+    color: var(--warning);
+}
+
+.action-btn.edit:hover {
+    background: var(--warning);
+    color: white;
+}
+
+.action-btn.pdf {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+}
+
+.action-btn.pdf:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.action-btn.delete {
+    background: rgba(245, 101, 101, 0.1);
+    color: var(--danger);
+}
+
+.action-btn.delete:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.empty-state-table {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state-table i {
+    font-size: 4rem;
+    color: var(--gray-light);
+    margin-bottom: 1rem;
+}
+
+.empty-state-table h3 {
+    color: var(--gray);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-table p {
+    color: var(--gray-light);
+    margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .action-buttons-group {
+        flex-direction: row;
+    }
+    
+    .action-btn {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .patients-table {
+        font-size: 0.75rem;
+    }
+    
+    .patients-table th,
+    .patients-table td {
+        padding: 0.5rem;
+    }
+}
+
+/* Gender badges — dark mode */
+body.dark-mode .gender-male {
+    background: rgba(54, 162, 235, 0.2);
+}
+
+body.dark-mode .gender-female {
+    background: rgba(255, 99, 132, 0.2);
+}
+
+.export-btn.assign-doctors {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.doctor-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8125rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.doctor-cell.none { color: var(--text-muted); }
+.doctor-cell.pending { background: rgba(217, 119, 6, 0.15); color: var(--warning-dark); }
+.doctor-cell.confirmed { background: rgba(5, 150, 105, 0.15); color: var(--success-dark); }
+
+.action-btn.assign {
+    background: rgba(8, 145, 178, 0.12);
+    color: var(--primary);
+}

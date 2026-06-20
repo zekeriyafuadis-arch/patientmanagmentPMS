@@ -1,0 +1,156 @@
+@import url('https://fonts.bunny.net/css?family=jura:400,500,600');
+
+:root {
+  --pill-nav-bg: rgb(5, 47, 74);
+  --pill-nav-indicator-hover: rgb(0, 105, 168);
+  --pill-nav-indicator-active: rgb(0, 166, 244);
+  --pill-nav-link: #ffffff;
+  --pill-nav-padding: 5px;
+  --pill-nav-radius: 999vw;
+  --pill-nav-height: 52px;
+  --pill-nav-trans: 700ms cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+.pill-nav {
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  right: 0;
+  z-index: 98;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: var(--pill-nav-height);
+  padding: 0.4rem clamp(0.5rem, 2vw, 1.25rem);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  box-sizing: border-box;
+}
+
+.pill-nav-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pill-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.pill-nav-wrapper {
+  position: relative;
+  display: inline-flex;
+  background: var(--pill-nav-bg);
+  border-radius: var(--pill-nav-radius);
+  padding: var(--pill-nav-padding);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 4px 24px rgba(5, 47, 74, 0.25);
+}
+
+.pill-nav-indicator {
+  position: absolute;
+  top: var(--pill-nav-padding);
+  left: var(--pill-nav-padding);
+  height: calc(100% - var(--pill-nav-padding) * 2);
+  width: 0;
+  border-radius: var(--pill-nav-radius);
+  background: var(--pill-nav-indicator-active);
+  transition:
+    transform var(--pill-nav-trans),
+    width var(--pill-nav-trans),
+    background-color 0.25s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.pill-nav-indicator.is-hover {
+  background: var(--pill-nav-indicator-hover);
+}
+
+.pill-nav .nav-menu {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 2px;
+}
+
+.pill-nav .nav-menu li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  margin: 0;
+  border-radius: var(--pill-nav-radius);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'Jura', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  color: var(--pill-nav-link);
+  background: transparent;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.pill-nav .nav-menu li::before {
+  display: none;
+}
+
+.pill-nav .nav-menu li i {
+  width: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.85;
+  color: inherit;
+}
+
+.pill-nav .nav-menu li:hover,
+.pill-nav .nav-menu li.active {
+  color: var(--pill-nav-link);
+  background: transparent;
+  transform: none;
+}
+
+.pill-nav .nav-menu li .nav-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 0.65rem;
+  min-width: 1.1rem;
+  padding: 0.1rem 0.35rem;
+}
+
+body.dark-mode .pill-nav {
+  background: var(--bg-primary);
+  border-bottom-color: var(--border-color);
+}
+
+@media (max-width: 900px) {
+  .pill-nav .nav-menu li span:not(.nav-badge) {
+    font-size: 0.8125rem;
+  }
+
+  .pill-nav .nav-menu li {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .pill-nav .nav-menu li i {
+    display: none;
+  }
+
+  .pill-nav .nav-menu li {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.8rem;
+  }
+}

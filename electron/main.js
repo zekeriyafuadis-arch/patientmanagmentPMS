@@ -9,31 +9,39 @@ let tray = null;
 let backendProcess = null;
 let isQuitting = false;
 
-// Check if server is running
 function isServerRunning(port = 3000) {
   return new Promise((resolve) => {
     const req = http.request({
       hostname: 'localhost',
-      port: port,
-      path: '/',
-      method: 'HEAD',
+      port,
+      path: '/api/v1/admin/health',
+      method: 'GET',
       timeout: 1000
     }, (res) => {
-      resolve(true);
+      resolve(res.statusCode === 200);
     });
-    
-    req.on('error', () => {
+
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => {
+      req.destroy();
       resolve(false);
     });
-    
     req.end();
   });
+}
+
+async function waitForServer(port = 3000, attempts = 30) {
+  for (let i = 0; i < attempts; i += 1) {
+    if (await isServerRunning(port)) return;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error('Backend server failed to start');
 }
 
 // Start backend server
 function startBackendServer() {
   return new Promise((resolve, reject) => {
-    const backendPath = path.join(__dirname, '..', 'app.js');
+    const backendPath = path.join(__dirname, '..', 'backend', 'server.js');
     
     if (!fs.existsSync(backendPath)) {
       reject(new Error(`Backend file not found: ${backendPath}`));
@@ -47,21 +55,19 @@ function startBackendServer() {
     });
     
     backendProcess.stdout.on('data', (data) => {
-      const output = data.toString();
-      console.log(`[Backend]: ${output}`);
-      if (output.includes('Server running on http://localhost:3000')) {
-        resolve();
-      }
+      console.log(`[Backend]: ${data.toString()}`);
     });
-    
+
     backendProcess.stderr.on('data', (data) => {
       console.error(`[Backend Error]: ${data}`);
     });
-    
+
     backendProcess.on('error', (err) => {
       reject(err);
     });
-    
+
+    resolve();
+
     backendProcess.on('exit', (code) => {
       if (!isQuitting) {
         console.log(`Backend server exited with code ${code}`);
@@ -92,8 +98,7 @@ async function createMainWindow() {
   if (!isRunning) {
     try {
       await startBackendServer();
-      // Wait a bit for server to fully initialize
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await waitForServer();
     } catch (error) {
       console.error('Failed to start backend:', error);
       showErrorDialog('Failed to start backend server', error.message);
@@ -109,6 +114,7 @@ async function createMainWindow() {
     minHeight: 768,
     icon: path.join(__dirname, 'assets', 'icon.png'),
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: true
@@ -419,9 +425,9 @@ function showAboutDialog() {
   const { dialog } = require('electron');
   dialog.showMessageBox(mainWindow, {
     type: 'info',
-    title: 'About Patient Management System',
-    message: 'Patient Management System v2.0.0',
-    detail: 'Healthcare Management System\n\nDeveloped for efficient patient record management\n\n© 2024 Healthcare HMS',
+    title: 'About Dr Amin Specialty Dental Clinic',
+    message: 'Dr Amin Specialty Dental Clinic PMS v3.0.0',
+    detail: 'Specialty Dental Clinic\n\nPatient and appointment management\n\n© 2025 Dr Amin Specialty Dental Clinic',
     buttons: ['OK']
   });
 }

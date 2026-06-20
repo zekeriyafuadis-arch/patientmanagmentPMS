@@ -1,0 +1,425 @@
+/* ========================================
+   SAYDOC — Unified Dark Mode
+   Uses body.dark-mode + [data-theme="dark"]
+   ======================================== */
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus,
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-muted);
+}
+
+body.dark-mode label,
+[data-theme="dark"] label {
+  color: var(--text-secondary);
+}
+
+/* App title always visible in top bar */
+
+/* ---- Page headers ---- */
+body.dark-mode .settings-page-header h1,
+body.dark-mode .settings-page-header p,
+body.dark-mode .settings-card-header h2,
+body.dark-mode .billing-header h1,
+body.dark-mode .billing-header p,
+body.dark-mode .appointments-header h1,
+body.dark-mode .appointments-header p,
+body.dark-mode .recalls-header h1,
+body.dark-mode .recalls-header p,
+body.dark-mode .inv-detail-header h2,
+body.dark-mode .line-items-title,
+body.dark-mode .dental-overview-header h3,
+body.dark-mode .clinical-header h3,
+body.dark-mode .plan-header h4,
+body.dark-mode .detail-header h1,
+body.dark-mode .header-left h1,
+[data-theme="dark"] .settings-page-header h1,
+[data-theme="dark"] .settings-page-header p,
+[data-theme="dark"] .settings-card-header h2,
+[data-theme="dark"] .billing-header h1,
+[data-theme="dark"] .billing-header p,
+[data-theme="dark"] .appointments-header h1,
+[data-theme="dark"] .appointments-header p,
+[data-theme="dark"] .recalls-header h1,
+[data-theme="dark"] .recalls-header p,
+[data-theme="dark"] .inv-detail-header h2,
+[data-theme="dark"] .line-items-title,
+[data-theme="dark"] .dental-overview-header h3,
+[data-theme="dark"] .clinical-header h3,
+[data-theme="dark"] .plan-header h4 {
+  color: var(--text-primary);
+}
+
+body.dark-mode .settings-page-header p,
+body.dark-mode .billing-header p,
+body.dark-mode .appointments-header p,
+body.dark-mode .settings-info-card,
+body.dark-mode .settings-hint,
+[data-theme="dark"] .settings-page-header p,
+[data-theme="dark"] .billing-header p,
+[data-theme="dark"] .appointments-header p {
+  color: var(--text-muted);
+}
+
+/* ---- Cards & panels (fix var(--gray-dark) / var(--white) misuse) ---- */
+body.dark-mode .settings-card,
+body.dark-mode .billing-stat-card,
+body.dark-mode .invoice-list-panel,
+body.dark-mode .invoice-detail-panel,
+body.dark-mode .appointments-toolbar,
+body.dark-mode .appointment-card,
+body.dark-mode .week-day-column,
+body.dark-mode .appointment-modal,
+body.dark-mode .today-appt-item,
+body.dark-mode .detail-header,
+body.dark-mode .detail-card,
+body.dark-mode .quick-actions-bar,
+body.dark-mode .medical-history-section,
+body.dark-mode .clinical-section,
+body.dark-mode .tooth-edit-modal,
+body.dark-mode .chart-card,
+body.dark-mode .recent-card,
+body.dark-mode .dental-metric-card,
+body.dark-mode .filter-menu,
+body.dark-mode .recall-stat-card,
+body.dark-mode .recalls-table-wrap,
+body.dark-mode .error-container,
+[data-theme="dark"] .settings-card,
+[data-theme="dark"] .billing-stat-card,
+[data-theme="dark"] .invoice-list-panel,
+[data-theme="dark"] .invoice-detail-panel,
+[data-theme="dark"] .appointments-toolbar,
+[data-theme="dark"] .appointment-card,
+[data-theme="dark"] .week-day-column,
+[data-theme="dark"] .appointment-modal,
+[data-theme="dark"] .today-appt-item,
+[data-theme="dark"] .detail-card,
+[data-theme="dark"] .quick-actions-bar,
+[data-theme="dark"] .medical-history-section,
+[data-theme="dark"] .clinical-section,
+[data-theme="dark"] .tooth-edit-modal,
+[data-theme="dark"] .chart-card,
+[data-theme="dark"] .recent-card,
+[data-theme="dark"] .dental-metric-card,
+[data-theme="dark"] .recall-stat-card,
+[data-theme="dark"] .recalls-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+body.dark-mode .recalls-table th,
+[data-theme="dark"] .recalls-table th {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+}
+
+body.dark-mode .recall-filter-btn,
+[data-theme="dark"] .recall-filter-btn {
+  background: var(--surface);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+body.dark-mode .recall-filter-btn.active,
+[data-theme="dark"] .recall-filter-btn.active {
+  color: var(--white);
+}
+
+body.dark-mode .discount-inbox-card,
+[data-theme="dark"] .discount-inbox-card {
+  background: var(--surface);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .detail-header {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+body.dark-mode .card-header,
+body.dark-mode .clinical-tabs,
+body.dark-mode .week-day-header,
+body.dark-mode .settings-card-header,
+body.dark-mode .section-header,
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .clinical-tabs,
+[data-theme="dark"] .week-day-header,
+[data-theme="dark"] .settings-card-header {
+  background: var(--bg-subtle);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .card-header h3,
+body.dark-mode .section-header h3,
+body.dark-mode .info-label,
+body.dark-mode .info-value,
+body.dark-mode .appt-patient strong,
+body.dark-mode .today-appt-info strong,
+body.dark-mode .inv-item-patient,
+body.dark-mode .system-info-grid strong,
+body.dark-mode .note-body,
+body.dark-mode .history-date,
+body.dark-mode .xray-meta strong,
+body.dark-mode .staff-form .form-field label,
+[data-theme="dark"] .card-header h3,
+[data-theme="dark"] .info-label,
+[data-theme="dark"] .info-value,
+[data-theme="dark"] .appt-patient strong,
+[data-theme="dark"] .system-info-grid strong,
+[data-theme="dark"] .note-body {
+  color: var(--text-primary);
+}
+
+body.dark-mode .info-row,
+body.dark-mode .visit-note-card,
+body.dark-mode .visit-note-form,
+body.dark-mode .chart-history-card,
+body.dark-mode .xray-upload-form,
+body.dark-mode .xray-card,
+body.dark-mode .week-appt-card,
+body.dark-mode .qr-simple,
+body.dark-mode .system-info-grid div,
+body.dark-mode .audit-table code,
+[data-theme="dark"] .info-row,
+[data-theme="dark"] .visit-note-card,
+[data-theme="dark"] .visit-note-form,
+[data-theme="dark"] .chart-history-card,
+[data-theme="dark"] .xray-upload-form,
+[data-theme="dark"] .xray-card,
+[data-theme="dark"] .week-appt-card,
+[data-theme="dark"] .system-info-grid div {
+  background: var(--bg-subtle);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .info-row:hover,
+[data-theme="dark"] .info-row:hover {
+  background: var(--primary-muted);
+}
+
+body.dark-mode .quick-action,
+body.dark-mode .clinical-tab,
+body.dark-mode .view-toggle-btn,
+body.dark-mode .legend-item,
+body.dark-mode .chart-hint,
+body.dark-mode .plan-meta,
+body.dark-mode .history-meta,
+body.dark-mode .appointments-summary,
+body.dark-mode .billing-stat-card span,
+body.dark-mode .inv-item-bottom,
+body.dark-mode .today-appt-info span,
+body.dark-mode .system-info-grid span,
+[data-theme="dark"] .quick-action,
+[data-theme="dark"] .clinical-tab,
+[data-theme="dark"] .appointments-summary,
+[data-theme="dark"] .billing-stat-card span {
+  color: var(--text-secondary);
+}
+
+body.dark-mode .appointments-summary strong,
+body.dark-mode .billing-stat-card strong,
+[data-theme="dark"] .appointments-summary strong,
+[data-theme="dark"] .billing-stat-card strong {
+  color: var(--primary-light);
+}
+
+/* Clinical tabs */
+body.dark-mode .clinical-tab.active,
+body.dark-mode .view-toggle-btn.active,
+[data-theme="dark"] .clinical-tab.active,
+[data-theme="dark"] .view-toggle-btn.active {
+  background: var(--surface);
+  color: var(--primary-light);
+  border: 1px solid var(--border-color);
+}
+
+/* Tables */
+body.dark-mode .procedure-table th,
+body.dark-mode .procedure-table td,
+body.dark-mode .staff-table th,
+body.dark-mode .staff-table td,
+body.dark-mode .treatment-table th,
+body.dark-mode .treatment-table td,
+body.dark-mode .audit-table th,
+body.dark-mode .audit-table td,
+[data-theme="dark"] .procedure-table th,
+[data-theme="dark"] .procedure-table td,
+[data-theme="dark"] .staff-table th,
+[data-theme="dark"] .staff-table td {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .procedure-table th,
+body.dark-mode .staff-table th,
+body.dark-mode .treatment-table th,
+body.dark-mode .audit-table th,
+[data-theme="dark"] .procedure-table th,
+[data-theme="dark"] .staff-table th {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+}
+
+/* Odontogram */
+body.dark-mode .tooth-btn,
+[data-theme="dark"] .tooth-btn {
+  background: var(--bg-subtle);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .tooth-num,
+body.dark-mode .tooth-surf,
+body.dark-mode .arch-label,
+[data-theme="dark"] .tooth-num,
+[data-theme="dark"] .tooth-surf,
+[data-theme="dark"] .arch-label {
+  color: var(--text-primary);
+}
+
+body.dark-mode .legend-item,
+[data-theme="dark"] .legend-item {
+  color: var(--text-secondary);
+}
+
+/* Buttons & controls */
+body.dark-mode .btn-icon,
+body.dark-mode .btn-icon-sm,
+body.dark-mode .filter-btn,
+body.dark-mode .date-nav input[type="date"],
+body.dark-mode .filter-select,
+body.dark-mode .billing-search,
+body.dark-mode .staff-form input,
+body.dark-mode .staff-form select,
+[data-theme="dark"] .btn-icon,
+[data-theme="dark"] .btn-icon-sm,
+[data-theme="dark"] .filter-btn,
+[data-theme="dark"] .date-nav input[type="date"],
+[data-theme="dark"] .filter-select,
+[data-theme="dark"] .billing-search {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .view-toggle,
+[data-theme="dark"] .view-toggle {
+  background: var(--bg-subtle);
+}
+
+body.dark-mode .dental-metric-card.alert,
+[data-theme="dark"] .dental-metric-card.alert {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+body.dark-mode .appt-type-badge,
+body.dark-mode .week-appt-card:hover,
+[data-theme="dark"] .appt-type-badge {
+  background: var(--primary-muted);
+  color: var(--primary-light);
+}
+
+body.dark-mode .week-appt-card:hover,
+[data-theme="dark"] .week-appt-card:hover {
+  background: var(--primary-muted);
+}
+
+body.dark-mode .phone-link,
+body.dark-mode .contact-link,
+[data-theme="dark"] .phone-link,
+[data-theme="dark"] .contact-link {
+  color: var(--primary-light);
+}
+
+/* Invoice list */
+body.dark-mode .invoice-list-item,
+body.dark-mode .inv-detail-header,
+body.dark-mode .inv-detail-actions,
+body.dark-mode .appt-status-row,
+[data-theme="dark"] .invoice-list-item {
+  border-color: var(--border-color);
+}
+
+body.dark-mode .invoice-list-item:hover,
+body.dark-mode .invoice-list-item.active,
+[data-theme="dark"] .invoice-list-item:hover,
+[data-theme="dark"] .invoice-list-item.active {
+  background: var(--primary-muted);
+}
+
+/* Empty states */
+body.dark-mode .empty-state,
+body.dark-mode .loading-state,
+body.dark-mode .text-muted,
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted);
+}
+
+body.dark-mode .toast,
+[data-theme="dark"] .toast {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+body.dark-mode .timeline-title,
+body.dark-mode .patient-name,
+body.dark-mode .dashboard-header h1,
+[data-theme="dark"] .timeline-title,
+[data-theme="dark"] .patient-name,
+[data-theme="dark"] .dashboard-header h1 {
+  color: var(--text-primary);
+}
+
+body.dark-mode .timeline-description,
+body.dark-mode .timeline-time,
+body.dark-mode .dashboard-subtitle,
+[data-theme="dark"] .timeline-description,
+[data-theme="dark"] .timeline-time,
+[data-theme="dark"] .dashboard-subtitle {
+  color: var(--text-muted);
+}
+
+body.dark-mode .doctor-cell.pending,
+[data-theme="dark"] .doctor-cell.pending {
+  color: var(--warning);
+}
+
+body.dark-mode .doctor-cell.confirmed,
+[data-theme="dark"] .doctor-cell.confirmed {
+  color: var(--success);
+}
+
+body.dark-mode .gender-male,
+[data-theme="dark"] .gender-male {
+  color: var(--info);
+}
+
+body.dark-mode .gender-female,
+[data-theme="dark"] .gender-female {
+  color: #f9a8d4;
+}
+
+body.dark-mode .alert-card .alert-message,
+body.dark-mode .stat-description,
+[data-theme="dark"] .alert-card .alert-message,
+[data-theme="dark"] .stat-description {
+  color: var(--text-muted);
+}
